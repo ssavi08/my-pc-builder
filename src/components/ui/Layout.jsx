@@ -4,6 +4,8 @@ import { Outlet, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
+import AccountModal from './AccountModal'
+import SavedBuildsModal from './SavedBuildsModal'
 import AuthModal from './AuthModal'
 
 const burgerStyle = {
@@ -101,6 +103,8 @@ export default function Layout() {
             </AppShell.Main>
 
             <AuthModal />
+            <AccountModal />
+            <SavedBuildsModal />
         </AppShell>
     )
 }

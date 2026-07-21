@@ -3,10 +3,11 @@ import { Center, Environment, OrbitControls } from '@react-three/drei';
 import { Suspense } from 'react';
 import DefaultBuild from './DefaultBuild';
 import { MM } from '../../lib/constants'
+import ComputerAssembly from './ComputerAssembly';
 
 export default function Scene() {
   return (
-    <Canvas camera={{ position: [0.3, 0.2, 0.5], fov: 45}} style={{width: '100%', height: '98vh'}}>
+    <Canvas camera={{ position: [-0.5, 0, 0.5], fov: 45}} style={{width: '100%', height: '98vh'}}>
 
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 8, 5]} intensity={1.2} />
@@ -15,7 +16,7 @@ export default function Scene() {
       <Suspense fallback={null}>
         <Environment preset='city' />
         <Center> 
-          <DefaultBuild scale={MM}/>
+          <ComputerAssembly scale={MM}/>
         </Center>
       </Suspense>
 
@@ -23,6 +24,7 @@ export default function Scene() {
         minDistance={0.5} maxDistance={1}
       />
 
+      <axesHelper arg={[5]} />
     </Canvas>
   )
 }

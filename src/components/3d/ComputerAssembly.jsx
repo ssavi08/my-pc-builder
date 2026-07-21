@@ -1,28 +1,26 @@
-// src/components/ComputerAssembly.jsx
-import { useEffect, useState } from "react"
-import { fetchModel } from "../../lib/fetchModel"
-import { useGLTF } from "@react-three/drei"
-import { SkeletonUtils } from 'three-stdlib'
+import { useGLTF } from "@react-three/drei";
+import { supabase } from "../../lib/supabaseClient";
 
-export default function ComputerAssembly() {
-    const [model, setModel] = useState(null)
+const url = (path) => supabase.storage.from('models').getPublicUrl(path).data.publicUrl
 
-    useEffect(() => {
-        async function loadModel() {
-            const result = await fetchModel('complete-build')
-            setModel(result)   // ✅ save into state, triggers a re-render
-        }
-        loadModel()
-    }, [])   // ✅ empty dependency array = run once on mount
+const CASE_URL = url('case/micro_atx_case.glb')
+const MOTHERBOARD_URL = url('motherboard/micro_atx.glb')
 
-    if (!model) return null   // ✅ safe here — this return happens BEFORE any hook call in this component
+useGLTF.preload(CASE_URL)
+useGLTF.preload(MOTHERBOARD_URL)
 
-    return <ComponentModel url={model.model_url} />
-}
+export default function ComputerAssembly(props) {
+    const pcCase = useGLTF(CASE_URL)
+    const motherboard = useGLTF(MOTHERBOARD_URL)
 
-function ComponentModel({ url }) {
-    const { scene } = useGLTF(url)   // ✅ only ever called with a real, defined url
-    const clone = SkeletonUtils.clone(scene)
+    const mbAnchor = pcCase.nodes['ANCHOR_motherboard']
 
-    return <primitive object={clone} />   // ✅ must wrap raw Three.js objects in <primitive>, can't return them bare
+    return (
+        <group {...props}>
+            <primitive object={pcCase.scene} />
+            <group position={mbAnchor.position} rotation={mbAnchor.rotation}>
+                <primitive object={motherboard.scene} />
+            </group>
+        </group>
+    )
 }

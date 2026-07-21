@@ -5,15 +5,19 @@ import { Box3, Vector3 } from 'three'
 const { data } = supabase
     .storage
     .from('models')
-    .getPublicUrl('complete build/default_pc.glb')
+    // .getPublicUrl('complete build/default_pc.glb')
+    .getPublicUrl('case/micro_atx_case.glb')
 
 const MODEL_URL = data.publicUrl
-
 useGLTF.preload(MODEL_URL)
 
 export default function DefaultBuild(props) {
     const { scene } = useGLTF(MODEL_URL)
 
+    const { nodes } = useGLTF(MODEL_URL)
+    console.log(Object.keys(nodes).filter((n) => n.startsWith('ANCHOR_')))
+    console.log(nodes['ANCHOR_psu'].position)
+    
     // TEMP: measure the model's bounding box
     const box = new Box3().setFromObject(scene)
     const size = new Vector3()
