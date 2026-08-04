@@ -7,6 +7,7 @@ import { useUIStore } from '../../store/useUIStore'
 import AccountModal from './AccountModal'
 import SavedBuildsModal from './SavedBuildsModal'
 import AuthModal from './AuthModal'
+import Sidebar from './Sidebar'
 
 const burgerStyle = {
     position: 'fixed',
@@ -76,7 +77,7 @@ export default function Layout() {
             </AppShell.Header>
 
             <AppShell.Navbar p="md">
-                Sidebar
+                <Sidebar />
             </AppShell.Navbar>
 
             <Burger
@@ -98,7 +99,10 @@ export default function Layout() {
                 style={{ ...burgerStyle, right: 12 }}
             />
 
-            <AppShell.Main bg={colorScheme === 'dark' ? 'dark.6' : 'gray.1'}>
+            <AppShell.Main
+                bg={colorScheme === 'dark' ? 'dark.6' : 'gray.1'}
+                style={{ height: 'calc(100vh - var(--app-shell-header-offset, 0px))' }}
+            >
                 <Outlet />
             </AppShell.Main>
 

@@ -1,8 +1,21 @@
 import { create } from 'zustand'
 
 export const useBuildStore = create((set) => ({
-    currentBuild: null,
+    componentIds: null,
+    fanCount: 0,
     reasoning: null,
-    setBuild: (currentBuild, reasoning) => set({ currentBuild, reasoning }),
-    clearBuild: () => set({ currentBuild: null, reasoning: null }),
+    totalPrice: null,
+
+    setBuild: (build) => set({
+        componentIds: build.componentIds,
+        fanCount: build.fanCount,
+        reasoning: build.reasoning,
+        totalPrice: build.totalPrice,
+    }),
+
+    setFanCount: (n) => set({ fanCount: Math.max(0, Math.min(6, n)) }),
+
+    clearBuild: () => set({
+        componentIds: null, fanCount: 0, reasoning: null, totalPrice: null,
+    }),
 }))
