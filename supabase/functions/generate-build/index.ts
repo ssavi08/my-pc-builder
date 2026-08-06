@@ -5,10 +5,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MIN_BUDGET = 550
-const MAX_BUDGET = 10000
-const MIN_BUDGET_USE = 0.85
+const MIN_BUDGET = 600
+const MAX_BUDGET = 9000
+const MIN_BUDGET_USE = 0.80
 const MAX_ATTEMPTS = 2
+
+// Fans are NOT chosen by the model. The user adds them in the UI.
+// Every build carries this id so the client always has a fan model and price.
+const DEFAULT_FAN_ID = 'fan-arctic-p12-pro-a-rgb-120mm'
 
 const SYSTEM_PROMPT = `You are a PC building expert. Build a complete, compatible PC from the provided candidate parts, within the user's budget and suited to their purpose.
 
@@ -18,22 +22,24 @@ Write the reasoning as if this were your first and only answer.
 NEVER mention: previous builds, earlier attempts, corrections, changes, adjustments, downgrades, upgrades, or "to fit the budget we swapped X".
 NEVER use words like "previous", "instead of", "was changed", "we adjusted", "retained", "maintained".
 Simply explain why each chosen part suits the purpose and budget.
+Do NOT mention case fans. The user adds those separately.
 
 ## REQUIRED SLOTS
-Every build MUST include exactly one: case, motherboard, cpu, cooler, psu, ram, fan.
+Every build MUST include exactly one: case, motherboard, cpu, cooler, psu, ram.
 A build MUST include at least one storage drive.
 A discrete gpu is OPTIONAL (see gpu rules below).
-ALWAYS include exactly one fan id, even if fanCount is 0. The number of fans installed comes from fanCount, never from repeating the id.
+Do NOT choose case fans. They are not your concern and are not in the candidate list.
 
 ## NEVER REPEAT AN ID
 Each id appears at most once in componentIds.
 
 ## BUDGET - BOTH LIMITS ARE HARD RULES
-Let TOTAL = sum of all component prices + (fanCount x fan price).
+Let TOTAL = sum of all component prices.
 TOTAL MUST NOT exceed the budget.
-TOTAL MUST be AT LEAST 85% of the budget. A build that spends far less than the budget is a FAILED build.
+TOTAL MUST be AT LEAST 80% of the budget. A build that spends far less than the budget is a FAILED build.
 The user chose their budget deliberately. If they say 1500 EUR they want a 1500 EUR machine, not a 900 EUR one.
-Before answering, add up your chosen prices. If TOTAL is below 85% of the budget, choose better parts until it is not:
+Aim for 90-95% of the budget so the user has a little room to add case fans afterwards.
+Before answering, add up your chosen prices. If TOTAL is below 80% of the budget, choose better parts until it is not:
 - spend more on the gpu first (for gaming), or the cpu (for work and content creation)
 - then more ram capacity, then faster or larger storage, then a better motherboard
 Do not state price totals or percentages in your reasoning. Explain the choices, not the arithmetic.
@@ -58,8 +64,8 @@ Integrated graphics are a compromise for tight budgets only. Do not use them to 
 4. An ATX case fits ATX or Micro-ATX motherboards. A Micro-ATX case fits ONLY Micro-ATX motherboards.
 5. gpu.gpu_length_mm MUST NOT exceed case.max_gpu_length_mm.
 6. cooler.cooler_height_mm MUST NOT exceed case.max_cooler_height_mm.
-7. psu.wattage MUST be at least (cpu.tdp + gpu.tdp) * 1.5. With no gpu, at least cpu.tdp * 2.
-8. Choose only air coolers (cooler_type "air"). Do not select AIO coolers.
+7. cooler.radiator_mm MUST NOT exceed case.max_radiator_mm.
+8. psu.wattage MUST be at least (cpu.tdp + gpu.tdp) * 1.5. With no gpu, at least cpu.tdp * 2.
 
 ## STORAGE
 Physical limits: at most 1 M.2, at most 2 2.5-inch SSDs, at most 2 3.5-inch HDDs.
@@ -68,18 +74,15 @@ Gaming: one fast M.2; add an SSD only if budget allows.
 Content creation: one M.2 plus large HDD(s) or a second SSD.
 On larger budgets, prefer higher capacity drives over the cheapest option.
 
-## CASE FANS
-fanCount is how many case fans to install (0-6).
-Fan cost = fanCount x fan price, and it COUNTS toward the budget.
-1-2 fans for office and school, 3-4 for mid gaming, 5-6 for high-TDP or high-budget builds.
-
 ## SELECTION QUALITY
 Balance the build. Prioritise by purpose: gaming favours gpu, work and content creation favour cpu, ram and storage.`
 
 function formatCandidates(candidates: any[]) {
   const bySlot: Record<string, any[]> = {}
   for (const c of candidates) {
-    (bySlot[c.slot] ??= []).push(c)
+    // Fans are user-chosen, never model-chosen. Keep them out of the prompt.
+    if (c.slot === 'fan') continue
+    ;(bySlot[c.slot] ??= []).push(c)
   }
 
   const line = (c: any) => {
@@ -95,8 +98,10 @@ function formatCandidates(candidates: any[]) {
     if (c.ram_slots) bits.push(`${c.ram_slots} slots`)
     if (c.gpu_length_mm) bits.push(`${c.gpu_length_mm}mm long`)
     if (c.cooler_height_mm) bits.push(`${c.cooler_height_mm}mm tall`)
+    if (c.radiator_mm) bits.push(`${c.radiator_mm}mm radiator`)
     if (c.max_gpu_length_mm) bits.push(`max gpu ${c.max_gpu_length_mm}mm`)
     if (c.max_cooler_height_mm) bits.push(`max cooler ${c.max_cooler_height_mm}mm`)
+    if (c.max_radiator_mm) bits.push(`max radiator ${c.max_radiator_mm}mm`)
     if (c.specs?.modules) bits.push(`${c.specs.modules}x sticks`)
     if (c.specs?.capacity_gb) bits.push(`${c.specs.capacity_gb}GB`)
     return bits.join('|')
@@ -111,16 +116,24 @@ async function validateBuild(supabase: any, build: any, budget: number) {
   const errors: string[] = []
   const ids: string[] = build.componentIds ?? []
 
-  const { data: rows } = await supabase
+  if (!ids.length) return { errors: ['Build contains no components'], total: 0 }
+
+  // duplicate ids would be silently collapsed by .in(), so catch them first
+  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i)
+  if (dupes.length) errors.push(`Repeated ids: ${[...new Set(dupes)].join(', ')}`)
+
+  const { data: rows, error: rowsErr } = await supabase
     .from('components')
-    .select('id, slot, price, socket, sockets, ram_type, form_factor, cooler_type, igpu, tdp, wattage, gpu_length_mm, cooler_height_mm, max_gpu_length_mm, max_cooler_height_mm, default_models(form_factor)')
+    .select('id, slot, price, socket, sockets, ram_type, form_factor, cooler_type, igpu, tdp, wattage, gpu_length_mm, cooler_height_mm, radiator_mm, max_gpu_length_mm, max_cooler_height_mm, max_radiator_mm, default_models(form_factor)')
     .in('id', ids)
+
+  if (rowsErr) throw new Error(`Component lookup failed: ${rowsErr.message}`)
 
   const found = new Set((rows ?? []).map((r: any) => r.id))
   for (const id of ids) {
     if (!found.has(id)) errors.push(`Unknown component id: ${id}`)
   }
-  if (errors.length) return { errors, fanCount: 0, total: 0 }
+  if (errors.length) return { errors, total: 0 }
 
   const bySlot: Record<string, any[]> = {}
   for (const r of rows) (bySlot[r.slot] ??= []).push(r)
@@ -128,12 +141,13 @@ async function validateBuild(supabase: any, build: any, budget: number) {
   const one = (s: string) => bySlot[s]?.[0]
   const cpu = one('cpu'), mobo = one('motherboard'), ram = one('ram')
   const cooler = one('cooler'), pcCase = one('case'), psu = one('psu')
-  const gpu = one('gpu'), fan = one('fan')
+  const gpu = one('gpu')
 
   for (const s of ['case', 'motherboard', 'cpu', 'cooler', 'psu', 'ram']) {
     if (!bySlot[s]) errors.push(`Missing required slot: ${s}`)
   }
   if (!bySlot['storage']) errors.push('Build must include at least one storage drive')
+  if (bySlot['fan']) errors.push('Do not choose case fans. Remove any fan id.')
 
   if (cpu && mobo && cpu.socket !== mobo.socket)
     errors.push(`Socket mismatch: cpu ${cpu.socket} vs motherboard ${mobo.socket}`)
@@ -153,6 +167,9 @@ async function validateBuild(supabase: any, build: any, budget: number) {
   if (cooler && pcCase && cooler.cooler_height_mm > pcCase.max_cooler_height_mm)
     errors.push(`Cooler too tall: ${cooler.cooler_height_mm}mm > case limit ${pcCase.max_cooler_height_mm}mm`)
 
+  if (cooler?.radiator_mm && pcCase?.max_radiator_mm && cooler.radiator_mm > pcCase.max_radiator_mm)
+    errors.push(`Radiator too large: ${cooler.radiator_mm}mm > case limit ${pcCase.max_radiator_mm}mm`)
+
   if (psu && cpu) {
     const needed = Math.ceil(((cpu.tdp ?? 0) + (gpu?.tdp ?? 0)) * 1.5)
     if (psu.wattage < needed)
@@ -168,20 +185,18 @@ async function validateBuild(supabase: any, build: any, budget: number) {
   if (count('2.5 inch') > 2) errors.push('At most 2 2.5-inch SSDs')
   if (count('3.5 inch') > 2) errors.push('At most 2 3.5-inch HDDs')
 
-  let fanCount = Math.max(0, Math.min(6, build.fanCount ?? 0))
-  if (fanCount > 0 && !fan) fanCount = 0
-
-  const partsTotal = rows.reduce((sum: number, r: any) => sum + Number(r.price), 0)
-  const fanTotal = fan ? Number(fan.price) * fanCount : 0
-  const total = partsTotal + fanTotal
+  const total = rows.reduce((sum: number, r: any) => sum + Number(r.price), 0)
 
   if (total > budget)
     errors.push(`Over budget: ${total.toFixed(2)} EUR > ${budget} EUR`)
 
-  if (total < budget * MIN_BUDGET_USE)
-    errors.push(`Underspent: ${total.toFixed(2)} EUR is only ${Math.round(total / budget * 100)}% of the ${budget} EUR budget. Minimum is ${Math.round(MIN_BUDGET_USE * 100)}%. Choose better parts.`)
+  if (total < budget * MIN_BUDGET_USE) {
+    const pct = (total / budget * 100).toFixed(1)
+    const target = (budget * 0.92).toFixed(0)
+    errors.push(`Underspent: ${total.toFixed(2)} EUR is only ${pct}% of the ${budget} EUR budget. Choose better parts so the total is near ${target} EUR.`)
+  }
 
-  return { errors, fanCount, total }
+  return { errors, total }
 }
 
 Deno.serve(async (req) => {
@@ -231,13 +246,12 @@ Deno.serve(async (req) => {
       if (candErr) throw new Error(`Candidate query failed: ${candErr.message}`)
       if (!candidates?.length) throw new Error('No candidates found for this budget')
 
-      const candidateList = formatCandidates(candidates)
-      const baseRequest = `Purpose: ${purpose}\nBudget: ${budget} EUR\n\nAvailable parts (id|price|specs):\n\n${candidateList}`
+      const baseRequest = `Purpose: ${purpose}\nBudget: ${budget} EUR\n\nAvailable parts (id|price|specs):\n\n${formatCandidates(candidates)}`
 
       let build: any = null
       let result: any = null
       let priorErrors: string[] = []
-      let priorBuild: any = null
+      let priorIds: string[] = []
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         // Fresh single-turn conversation each attempt. Failure info is passed as
@@ -246,7 +260,7 @@ Deno.serve(async (req) => {
         let userContent = baseRequest
 
         if (priorErrors.length) {
-          userContent += `\n\n## CONSTRAINTS FROM A REJECTED DRAFT\nA draft using these ids was rejected: ${JSON.stringify(priorBuild?.componentIds ?? [])} with fanCount ${priorBuild?.fanCount}.\nReasons:\n${priorErrors.map((e) => `- ${e}`).join('\n')}\n\nProduce a build that avoids every one of these problems.\nRemember: the reasoning field must read as a first and only answer. Do not mention this draft, any rejection, or any change.`
+          userContent += `\n\n## CONSTRAINTS FROM A REJECTED DRAFT\nA draft using these ids was rejected: ${JSON.stringify(priorIds)}\nReasons:\n${priorErrors.map((e) => `- ${e}`).join('\n')}\n\nProduce a build that avoids every one of these problems.\nRemember: the reasoning field must read as a first and only answer. Do not mention this draft, any rejection, or any change.`
         }
 
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -270,10 +284,9 @@ Deno.serve(async (req) => {
                   type: 'object',
                   properties: {
                     componentIds: { type: 'array', items: { type: 'string' } },
-                    fanCount: { type: 'integer' },
                     reasoning: { type: 'string' },
                   },
-                  required: ['componentIds', 'fanCount', 'reasoning'],
+                  required: ['componentIds', 'reasoning'],
                   additionalProperties: false,
                 },
               },
@@ -297,7 +310,7 @@ Deno.serve(async (req) => {
 
         console.error(`Attempt ${attempt} failed:`, result.errors)
         priorErrors = result.errors
-        priorBuild = build
+        priorIds = build.componentIds ?? []
       }
 
       if (result.errors.length) {
@@ -309,7 +322,14 @@ Deno.serve(async (req) => {
         }, 422)
       }
 
-      return json({ ...build, fanCount: result.fanCount, totalPrice: result.total })
+      // The model never picks fans. Append the default fan id so the client
+      // always has a model and price for the user's +/- controls.
+      return json({
+        componentIds: [...build.componentIds, DEFAULT_FAN_ID],
+        reasoning: build.reasoning,
+        fanCount: 0,
+        totalPrice: result.total,
+      })
     } catch (err) {
       await supabase.rpc('refund_credit', { p_user_id: user.id })
       console.error('generate-build failed:', err)

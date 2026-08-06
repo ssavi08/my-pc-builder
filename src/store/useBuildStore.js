@@ -8,7 +8,7 @@ export const useBuildStore = create((set) => ({
 
     setBuild: (build) => set({
         componentIds: build.componentIds,
-        fanCount: build.fanCount,
+        fanCount: 0,
         reasoning: build.reasoning,
         totalPrice: build.totalPrice,
     }),

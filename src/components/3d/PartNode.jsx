@@ -1,9 +1,14 @@
-import { useGLTF } from '@react-three/drei'
+import { useMemo } from 'react'
 import { useClonedGltf } from '../../lib/useClonedGltf'
 
 export default function PartNode({ url, children }) {
     const scene = useClonedGltf(url)
-    const { nodes } = useGLTF(url)   // anchors from the original — see below
+
+    const nodes = useMemo(() => {
+        const map = {}
+        scene.traverse((o) => { if (o.name) map[o.name] = o })
+        return map
+    }, [scene])
 
     return (
         <group>

@@ -4,4 +4,7 @@ export const useUIStore = create((set) => ({
     activeModal: null,
     openModal: (name) => set({ activeModal: name}),
     closeModal: () => set({ activeModal: null }),
+
+    panelsVisible: true,
+    togglePanels: () => set((s) => ({ panelsVisible: !s.panelsVisible })),
 }))

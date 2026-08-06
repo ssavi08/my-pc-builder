@@ -5,7 +5,7 @@ const MULTI_SLOTS = ['storage', 'fan']
 export async function fetchBuildComponents(ids) {
     const { data, error } = await supabase
         .from('components')
-        .select('id, slot, name, price, specs, ram_slots, default_models(model_url, form_factor)')
+        .select('id, slot, name, price, specs, ram_slots, cooler_type, default_models(model_url, form_factor)')
         .in('id', ids)
 
     if (error) throw error
@@ -19,6 +19,7 @@ export async function fetchBuildComponents(ids) {
             price: row.price,
             specs: row.specs,
             ramSlots: row.ram_slots,
+            coolerType: row.cooler_type,
             modelUrl: row.default_models.model_url,
             formFactor: row.default_models.form_factor,
         }

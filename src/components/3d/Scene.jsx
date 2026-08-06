@@ -10,6 +10,7 @@ export default function Scene() {
 
   const componentIds = useBuildStore((s) => s.componentIds)
   console.log('Scene componentIds:', componentIds)
+  
   return (
     <Canvas camera={{ position: [-0.5, 0, 0.5], fov: 45}} style={{width: '100%', height: '100%'}}>
 

@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-    Stack, Select, NumberInput, Button, Alert, Text, Group, Divider,
-    ScrollArea, ActionIcon, Accordion, Badge, Loader,
+    Stack, Select, Button, Alert, Text, Group, Divider,
+    ScrollArea, ActionIcon, Accordion, Badge, Loader, Switch,
 } from '@mantine/core'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
+import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_OPTIONS } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
 
@@ -18,17 +19,19 @@ export default function Sidebar() {
 
     const user = useAuthStore((s) => s.user)
     const openModal = useUIStore((s) => s.openModal)
+    const panelsVisible = useUIStore((s) => s.panelsVisible)
+    const togglePanels = useUIStore((s) => s.togglePanels)
     const queryClient = useQueryClient()
 
     const componentIds = useBuildStore((s) => s.componentIds)
     const fanCount = useBuildStore((s) => s.fanCount)
     const reasoning = useBuildStore((s) => s.reasoning)
-    const totalPrice = useBuildStore((s) => s.totalPrice)
     const setBuild = useBuildStore((s) => s.setBuild)
     const setFanCount = useBuildStore((s) => s.setFanCount)
     const clearBuild = useBuildStore((s) => s.clearBuild)
 
     const { data: parts } = useBuildParts(componentIds)
+    const maxFans = parts?.cooler?.coolerType === 'aio' ? MAX_FANS_AIO : MAX_FANS_AIR
 
     const liveTotal = useMemo(() => {
         if (!parts) return null
@@ -81,14 +84,13 @@ export default function Sidebar() {
                 ]}
             />
 
-            <NumberInput
-                label="Budget (EUR)"
-                value={budget}
-                onChange={setBudget}
-                min={550}
-                max={10000}
-                step={50}
-                clampBehavior="strict"
+            <Select
+                label="Budget"
+                value={String(budget)}
+                onChange={(v) => setBudget(Number(v))}
+                allowDeselect={false}
+                maxDropdownHeight={280}
+                data={BUDGET_OPTIONS}
             />
 
             {!user ? (
@@ -120,6 +122,8 @@ export default function Sidebar() {
                         </Badge>
                     </Group>
 
+                    <Divider />
+
                     <Group justify="space-between">
                         <Text size="sm">Case fans</Text>
                         <Group gap="xs">
@@ -131,10 +135,25 @@ export default function Sidebar() {
                             <Text size="sm" w={20} ta="center">{fanCount}</Text>
                             <ActionIcon
                                 variant="default"
-                                onClick={() => setFanCount(fanCount + 1)}
-                                disabled={fanCount >= 6}
+                                onClick={() => setFanCount(Math.min(fanCount + 1, maxFans))}
+                                disabled={fanCount >= maxFans}
                             >+</ActionIcon>
                         </Group>
+                    </Group>
+
+                    {fanCount === 0 && (
+                        <Text size="xs" c="dimmed" mt={-8}>Add fans to improve airflow</Text>
+                    )}
+                    
+                    <Divider />
+
+                    <Group justify="space-between">
+                        <Text size="sm">Side panels</Text>
+                        <Switch
+                            checked={panelsVisible}
+                            onChange={togglePanels}
+                            styles={{ track: { cursor: 'pointer' } }}
+                        />
                     </Group>
 
                     <Divider />
@@ -149,7 +168,7 @@ export default function Sidebar() {
                                     return items.map((p) => (
                                         <Group key={p.id} justify="space-between" wrap="nowrap">
                                             <Text size="sm" lineClamp={1}>{p.name}</Text>
-                                            <Text size="sm" c="dimmed">{Number(p.price).toFixed(2)}</Text>
+                                            <Text size="sm" c="dimmed">{Number(p.price).toFixed(2)} €</Text>
                                         </Group>
                                     ))
                                 })

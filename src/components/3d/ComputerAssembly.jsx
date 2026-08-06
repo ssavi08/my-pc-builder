@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchBuildComponents } from '../../lib/fetchBuildComponents'
+import { useEffect } from 'react'
 import PartNode from './PartNode'
 import Anchored from './Anchored'
-import { FAN_FILL_ORDER } from '../../lib/constants'
+import { FAN_FILL_ORDER, FAN_FILL_ORDER_WITH_AIO } from '../../lib/constants'
 import { useBuildStore } from '../../store/useBuildStore'
+import { useUIStore } from '../../store/useUIStore'
 import { useBuildParts } from '../../lib/useBuildParts'
 
 export default function ComputerAssembly(props) {
@@ -25,6 +25,8 @@ export default function ComputerAssembly(props) {
             <PartNode url={parts.case.modelUrl}>
                 {(caseNodes) => (
                     <>
+                        <SidePanels caseNodes={caseNodes} />
+
                         {parts.psu && (
                             <Anchored nodes={caseNodes} name="ANCHOR_psu">
                                 <PartNode url={parts.psu.modelUrl} />
@@ -70,6 +72,20 @@ export default function ComputerAssembly(props) {
     )
 }
 
+function SidePanels({ caseNodes }) {
+    const panelsVisible = useUIStore((s) => s.panelsVisible)
+
+    useEffect(() => {
+        for (const name of Object.keys(caseNodes)) {
+            if (name.toLowerCase().includes('panel')) {
+                caseNodes[name].visible = panelsVisible
+            }
+        }
+    }, [caseNodes, panelsVisible])
+
+    return null
+}
+
 function RamSticks({ parts, moboNodes }) {
     const ram = parts.ram
     if (!ram) return null
@@ -97,7 +113,7 @@ function StorageDrives({ drives, nodes, prefix }) {
         if (used >= anchors.length) return null
         const name = anchors[used++]
         return (
-            <Anchored key={drive.id} nodes={nodes} name={name}>
+            <Anchored key={name} nodes={nodes} name={name}>
                 <PartNode url={drive.modelUrl} />
             </Anchored>
         )
@@ -108,8 +124,10 @@ function Fans({ parts, caseNodes, count }) {
     const fan = parts.fan?.[0]
     if (!fan || !count) return null
 
-    const anchorNames = FAN_FILL_ORDER.filter((name) => caseNodes[name])
+    const isAio = parts.cooler?.coolerType === 'aio'
+    const order = isAio ? FAN_FILL_ORDER_WITH_AIO : FAN_FILL_ORDER
 
+    const anchorNames = order.filter((name) => caseNodes[name])
     const n = Math.min(count, anchorNames.length)
 
     return anchorNames.slice(0, n).map((name) => (
