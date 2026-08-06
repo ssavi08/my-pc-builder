@@ -8,7 +8,6 @@ import { useBuildParts } from '../../lib/useBuildParts'
 
 export default function ComputerAssembly(props) {
     const componentIds = useBuildStore((s) => s.componentIds)
-    const fanCount = useBuildStore((s) => s.fanCount)
 
     const { data: parts, isLoading, isError } = useBuildParts(componentIds)
 
@@ -35,7 +34,7 @@ export default function ComputerAssembly(props) {
 
                         <StorageDrives drives={bayDrives} nodes={caseNodes} prefix="ANCHOR_ssd_" />
                         <StorageDrives drives={hddDrives} nodes={caseNodes} prefix="ANCHOR_hdd_" />
-                        <Fans parts={parts} caseNodes={caseNodes} count={fanCount} />
+                        <Fans parts={parts} caseNodes={caseNodes} />
 
                         {parts.motherboard && (
                             <Anchored nodes={caseNodes} name="ANCHOR_motherboard">
@@ -120,15 +119,17 @@ function StorageDrives({ drives, nodes, prefix }) {
     })
 }
 
-function Fans({ parts, caseNodes, count }) {
+function Fans({ parts, caseNodes }) {
+    const fanCount = useBuildStore((s) => s.fanCount)
+
     const fan = parts.fan?.[0]
-    if (!fan || !count) return null
+    if (!fan || !fanCount) return null
 
     const isAio = parts.cooler?.coolerType === 'aio'
     const order = isAio ? FAN_FILL_ORDER_WITH_AIO : FAN_FILL_ORDER
 
     const anchorNames = order.filter((name) => caseNodes[name])
-    const n = Math.min(count, anchorNames.length)
+    const n = Math.min(fanCount, anchorNames.length)
 
     return anchorNames.slice(0, n).map((name) => (
         <Anchored key={name} nodes={caseNodes} name={name}>

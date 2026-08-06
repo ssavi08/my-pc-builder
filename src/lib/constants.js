@@ -16,20 +16,19 @@ export const FAN_FILL_ORDER_WITH_AIO = [
     'ANCHOR_fan_front_3',
 ]
 
-export const BUDGET_OPTIONS = [
-    { value: '600', label: '600 EUR' },
-    { value: '800', label: '800 EUR' },
-    { value: '1000', label: '1000 EUR' },
-    { value: '1200', label: '1200 EUR' },
-    { value: '1500', label: '1500 EUR' },
-    { value: '1800', label: '1800 EUR' },
-    { value: '2200', label: '2200 EUR' },
-    { value: '2600', label: '2600 EUR' },
-    { value: '3000', label: '3000 EUR' },
-    { value: '4000', label: '4000 EUR' },
-    { value: '5000', label: '5000 EUR' },
-    { value: '6500', label: '6500 EUR' },
-    { value: '9000', label: '9000 EUR' },
+export const BUDGET_TIERS = [
+    { value: '600',  label: '600 EUR — entry, contains only iGPU',  purposes: ['school', 'work', 'gaming'] },
+    { value: '800',  label: '800 EUR — budget',          purposes: ['school', 'work', 'gaming'] },
+    { value: '1000', label: '1000 EUR',                  purposes: ['school', 'work', 'gaming'] },
+    { value: '1200', label: '1200 EUR',                  purposes: ['school', 'work', 'gaming'] },
+    { value: '1500', label: '1500 EUR — mid range',      purposes: ['school', 'work', 'gaming'] },
+    { value: '2000', label: '2000 EUR',                  purposes: ['school', 'work', 'gaming'] },
+    { value: '2600', label: '2600 EUR',                  purposes: ['work', 'gaming'] },
+    { value: '3200', label: '3200 EUR — high end',       purposes: ['work', 'gaming'] },
+    { value: '4000', label: '4000 EUR',                  purposes: ['work', 'gaming'] },
+    { value: '5500', label: '5500 EUR — enthusiast',     purposes: ['gaming'] },
+    { value: '7500', label: '7500 EUR',                  purposes: ['gaming'] },
+    { value: '9000', label: '9000 EUR — maximum',        purposes: ['gaming'] },
 ]
 
 export const MAX_FANS_AIR = 6

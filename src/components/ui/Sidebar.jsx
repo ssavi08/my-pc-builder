@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
-import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_OPTIONS } from '../../lib/constants'
+import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
 
@@ -33,6 +33,18 @@ export default function Sidebar() {
     const { data: parts } = useBuildParts(componentIds)
     const maxFans = parts?.cooler?.coolerType === 'aio' ? MAX_FANS_AIO : MAX_FANS_AIR
 
+    const budgetOptions = useMemo(
+        () => BUDGET_TIERS.filter((t) => t.purposes.includes(purpose)),
+        [purpose]
+    )
+
+    function handlePurposeChange(next) {
+        setPurpose(next)
+        const allowed = BUDGET_TIERS.filter((t) => t.purposes.includes(next))
+        const max = Number(allowed[allowed.length - 1].value)
+        if (budget > max) setBudget(max)
+    }
+
     const liveTotal = useMemo(() => {
         if (!parts) return null
 
@@ -55,10 +67,22 @@ export default function Sidebar() {
             const { data, error } = await supabase.functions.invoke('generate-build', {
                 body: { purpose, budget },
             })
+
             if (error) {
+                const status = error.context?.status
                 const body = await error.context?.json().catch(() => null)
-                throw new Error(body?.details?.join('; ') ?? body?.error ?? error.message)
+
+                let message
+                if (status === 402) message = 'You have no credits left.'
+                else if (status === 401) message = 'Your session expired. Please log in again.'
+                else if (status === 400) message = body?.error ?? 'Invalid request.'
+                else message = 'The AI made a mistake building your PC. Please try again — your credit was not spent.'
+
+                const err = new Error(message)
+                err.details = body?.details ?? null
+                throw err
             }
+
             return data
         },
         onMutate: () => {
@@ -75,7 +99,7 @@ export default function Sidebar() {
             <Select
                 label="Purpose"
                 value={purpose}
-                onChange={setPurpose}
+                onChange={handlePurposeChange}
                 allowDeselect={false}
                 data={[
                     { value: 'school', label: 'School' },
@@ -90,7 +114,7 @@ export default function Sidebar() {
                 onChange={(v) => setBudget(Number(v))}
                 allowDeselect={false}
                 maxDropdownHeight={280}
-                data={BUDGET_OPTIONS}
+                data={budgetOptions}
             />
 
             {!user ? (
@@ -107,7 +131,24 @@ export default function Sidebar() {
 
             {generate.isError && (
                 <Alert color="red" title="Generation failed">
-                    {generate.error.message}
+                    <Text size="sm">{generate.error.message}</Text>
+
+                    {generate.error.details?.length > 0 && (
+                        <Accordion variant="filled" mt="xs">
+                            <Accordion.Item value="why">
+                                <Accordion.Control px={0}>
+                                    <Text size="xs">Why did this happen?</Text>
+                                </Accordion.Control>
+                                <Accordion.Panel>
+                                    <Stack gap={4}>
+                                        {generate.error.details.map((d, i) => (
+                                            <Text key={i} size="xs" c="dimmed">{d}</Text>
+                                        ))}
+                                    </Stack>
+                                </Accordion.Panel>
+                            </Accordion.Item>
+                        </Accordion>
+                    )}
                 </Alert>
             )}
 
@@ -144,7 +185,7 @@ export default function Sidebar() {
                     {fanCount === 0 && (
                         <Text size="xs" c="dimmed" mt={-8}>Add fans to improve airflow</Text>
                     )}
-                    
+
                     <Divider />
 
                     <Group justify="space-between">
