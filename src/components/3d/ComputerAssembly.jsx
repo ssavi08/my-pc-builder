@@ -28,7 +28,7 @@ export default function ComputerAssembly(props) {
 
                         {parts.psu && (
                             <Anchored nodes={caseNodes} name="ANCHOR_psu">
-                                <PartNode url={parts.psu.modelUrl} />
+                                <PartNode url={parts.psu.modelUrl} componentId={parts.psu.id} />
                             </Anchored>
                         )}
 
@@ -38,22 +38,22 @@ export default function ComputerAssembly(props) {
 
                         {parts.motherboard && (
                             <Anchored nodes={caseNodes} name="ANCHOR_motherboard">
-                                <PartNode url={parts.motherboard.modelUrl}>
+                                <PartNode url={parts.motherboard.modelUrl} componentId={parts.motherboard.id}>
                                     {(moboNodes) => (
                                         <>
                                             {parts.cpu && (
                                                 <Anchored nodes={moboNodes} name="ANCHOR_cpu">
-                                                    <PartNode url={parts.cpu.modelUrl} />
+                                                    <PartNode url={parts.cpu.modelUrl} componentId={parts.cpu.id}/>
                                                 </Anchored>
                                             )}
                                             {parts.cooler && (
                                                 <Anchored nodes={moboNodes} name="ANCHOR_cooler">
-                                                    <PartNode url={parts.cooler.modelUrl} />
+                                                    <PartNode url={parts.cooler.modelUrl} componentId={parts.cooler.id}/>
                                                 </Anchored>
                                             )}
                                             {parts.gpu && (
                                                 <Anchored nodes={moboNodes} name="ANCHOR_gpu">
-                                                    <PartNode url={parts.gpu.modelUrl} />
+                                                    <PartNode url={parts.gpu.modelUrl} componentId={parts.gpu.id}/>
                                                 </Anchored>
                                             )}
 
@@ -78,6 +78,7 @@ function SidePanels({ caseNodes }) {
         for (const name of Object.keys(caseNodes)) {
             if (name.toLowerCase().includes('panel')) {
                 caseNodes[name].visible = panelsVisible
+                caseNodes[name].raycast = () => null   // never intercept pointer events
             }
         }
     }, [caseNodes, panelsVisible])
@@ -97,7 +98,7 @@ function RamSticks({ parts, moboNodes }) {
 
     return anchorNames.slice(0, count).map((name) => (
         <Anchored key={name} nodes={moboNodes} name={name}>
-            <PartNode url={ram.modelUrl} />
+            <PartNode url={ram.modelUrl} componentId={ram.id} />
         </Anchored>
     ))
 }
@@ -113,7 +114,7 @@ function StorageDrives({ drives, nodes, prefix }) {
         const name = anchors[used++]
         return (
             <Anchored key={name} nodes={nodes} name={name}>
-                <PartNode url={drive.modelUrl} />
+                <PartNode url={drive.modelUrl} componentId={drive.id}/>
             </Anchored>
         )
     })

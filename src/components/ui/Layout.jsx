@@ -8,6 +8,7 @@ import AccountModal from './AccountModal'
 import SavedBuildsModal from './SavedBuildsModal'
 import AuthModal from './AuthModal'
 import Sidebar from './Sidebar'
+import ComponentModal from './ComponentModal'
 
 const burgerStyle = {
     position: 'fixed',
@@ -109,6 +110,7 @@ export default function Layout() {
             <AuthModal />
             <AccountModal />
             <SavedBuildsModal />
+            <ComponentModal />
         </AppShell>
     )
 }

@@ -5,6 +5,7 @@ import DefaultBuild from './DefaultBuild';
 import { MM } from '../../lib/constants'
 import ComputerAssembly from './ComputerAssembly';
 import { useBuildStore } from '../../store/useBuildStore'
+import { Stats } from '@react-three/drei'
 
 export default function Scene() {
 
@@ -30,6 +31,8 @@ export default function Scene() {
       />
 
       {/* <axesHelper arg={[5]} /> */}
+
+      <Stats />
     </Canvas>
   )
 }
