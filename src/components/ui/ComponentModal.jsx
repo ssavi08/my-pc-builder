@@ -1,7 +1,17 @@
-import { Modal, Stack, Group, Text, Badge, Divider, Loader, Alert, Table, Anchor, Avatar, Title } from '@mantine/core'
+import {
+    Modal, Stack, Group, Text, Badge, Divider, Loader, Alert, Table,
+    Anchor, Avatar, Collapse, Button,
+} from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { useOffers } from '../../lib/useOffers'
-import { useUIStore } from '../../store/useUIStore'
 import { useComponent } from '../../lib/useComponent'
+import { useBuildParts } from '../../lib/useBuildParts'
+import { useSwapOptions } from '../../lib/useSwapOptions'
+import { checkSwap } from '../../lib/compatibility'
+import { useUIStore } from '../../store/useUIStore'
+import { useBuildStore } from '../../store/useBuildStore'
+
+const SWAPPABLE = ['cpu', 'gpu', 'ram', 'storage']
 
 // typed columns worth showing, and how to label them
 const SPEC_LABELS = {
@@ -53,8 +63,26 @@ export default function ComponentModal() {
     const closeModal = useUIStore((s) => s.closeModal)
     const componentId = useUIStore((s) => s.selectedComponentId)
 
+    const componentIds = useBuildStore((s) => s.componentIds)
+    const swapComponent = useBuildStore((s) => s.swapComponent)
+
+    const [showOptions, { toggle: toggleOptions, close: closeOptions }] = useDisclosure(false)
+
     const { data: component, isLoading, isError } = useComponent(componentId)
     const { data: offers, isLoading: offersLoading } = useOffers(componentId)
+    const { data: parts } = useBuildParts(componentIds)
+    const { data: options, isLoading: optionsLoading } = useSwapOptions(
+        componentId,
+        componentIds,
+        showOptions,
+    )
+
+    const canSwap = component && SWAPPABLE.includes(component.slot)
+
+    function handleSwap(newId) {
+        swapComponent(componentId, newId)
+        closeModal()
+    }
 
     const rows = []
 
@@ -77,7 +105,8 @@ export default function ComponentModal() {
         <Modal
             opened={activeModal === 'component'}
             onClose={closeModal}
-            title={<Text fw={700} size="lg" lineClamp={1}>{shortName(component?.name)}</Text>}
+            onExitTransitionEnd={closeOptions}
+            title={<Text fw={700} size="lg">{shortName(component?.name)}</Text>}
             centered
             size="md"
         >
@@ -119,6 +148,82 @@ export default function ComponentModal() {
                         </Table>
                     </Stack>
 
+                    {canSwap && (
+                        <>
+                            <Divider />
+
+                            <Stack gap="sm">
+                                <Button variant="light" onClick={toggleOptions} fullWidth>
+                                    {showOptions ? 'Hide alternatives' : 'More options'}
+                                </Button>
+
+                                <Collapse expanded={showOptions}>
+                                    <Stack gap="xs">
+                                        {optionsLoading && <Loader size="xs" />}
+
+                                        {!optionsLoading && options?.length === 0 && (
+                                            <Text size="sm" c="dimmed">
+                                                No compatible alternatives in the catalogue.
+                                            </Text>
+                                        )}
+
+                                        {options?.map((opt) => {
+                                            const problem = parts
+                                                ? checkSwap(component.slot, opt, parts)
+                                                : null
+                                            const delta = Number(opt.price_delta)
+
+                                            return (
+                                                <Group
+                                                    key={opt.id}
+                                                    justify="space-between"
+                                                    wrap="nowrap"
+                                                    gap="sm"
+                                                    p="xs"
+                                                    style={{
+                                                        border: '1px solid var(--mantine-color-default-border)',
+                                                        borderRadius: 'var(--mantine-radius-sm)',
+                                                        opacity: problem ? 0.55 : 1,
+                                                    }}
+                                                >
+                                                    <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+                                                        <Text size="sm" lineClamp={1}>{opt.name}</Text>
+
+                                                        <Group gap="xs" wrap="nowrap">
+                                                            <Text size="xs" c="dimmed">
+                                                                {Number(opt.price).toFixed(2)} EUR
+                                                            </Text>
+                                                            <Text
+                                                                size="xs"
+                                                                fw={600}
+                                                                c={delta > 0 ? 'red' : delta < 0 ? 'green' : 'dimmed'}
+                                                            >
+                                                                {delta > 0 ? '+' : ''}{delta.toFixed(2)}
+                                                            </Text>
+                                                        </Group>
+
+                                                        {problem && (
+                                                            <Text size="xs" c="red">{problem}</Text>
+                                                        )}
+                                                    </Stack>
+
+                                                    <Button
+                                                        size="xs"
+                                                        variant="light"
+                                                        disabled={!!problem}
+                                                        onClick={() => handleSwap(opt.id)}
+                                                    >
+                                                        Swap
+                                                    </Button>
+                                                </Group>
+                                            )
+                                        })}
+                                    </Stack>
+                                </Collapse>
+                            </Stack>
+                        </>
+                    )}
+
                     <Divider />
 
                     <Stack gap="sm">
@@ -138,11 +243,7 @@ export default function ComponentModal() {
                         {offers?.map((offer) => (
                             <Group key={offer.link} justify="space-between" wrap="nowrap" gap="sm">
                                 <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
-                                    <Avatar
-                                        src={offer.favicon}
-                                        size={20}
-                                        radius="sm"
-                                    >
+                                    <Avatar src={offer.favicon} size={20} radius="sm">
                                         {offer.retailer?.[0]?.toUpperCase()}
                                     </Avatar>
                                     <Anchor

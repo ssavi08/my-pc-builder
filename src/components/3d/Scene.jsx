@@ -32,7 +32,7 @@ export default function Scene() {
 
       {/* <axesHelper arg={[5]} /> */}
 
-      <Stats />
+      {/* <Stats /> */}
     </Canvas>
   )
 }

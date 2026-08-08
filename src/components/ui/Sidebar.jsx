@@ -24,11 +24,15 @@ export default function Sidebar() {
     const queryClient = useQueryClient()
 
     const componentIds = useBuildStore((s) => s.componentIds)
+    const originalComponentIds = useBuildStore((s) => s.originalComponentIds)
     const fanCount = useBuildStore((s) => s.fanCount)
     const reasoning = useBuildStore((s) => s.reasoning)
+    const generating = useBuildStore((s) => s.generating)
     const setBuild = useBuildStore((s) => s.setBuild)
     const setFanCount = useBuildStore((s) => s.setFanCount)
     const clearBuild = useBuildStore((s) => s.clearBuild)
+    const resetToOriginal = useBuildStore((s) => s.resetToOriginal)
+    const setGenerating = useBuildStore((s) => s.setGenerating)
 
     const { data: parts } = useBuildParts(componentIds)
     const maxFans = parts?.cooler?.coolerType === 'aio' ? MAX_FANS_AIO : MAX_FANS_AIR
@@ -37,6 +41,11 @@ export default function Sidebar() {
         () => BUDGET_TIERS.filter((t) => t.purposes.includes(purpose)),
         [purpose]
     )
+
+    const hasSwaps = useMemo(() => {
+        if (!componentIds || !originalComponentIds) return false
+        return componentIds.some((id, i) => id !== originalComponentIds[i])
+    }, [componentIds, originalComponentIds])
 
     function handlePurposeChange(next) {
         setPurpose(next)
@@ -52,12 +61,12 @@ export default function Sidebar() {
 
         for (const [slot, entry] of Object.entries(parts)) {
             if (slot === 'fan') continue
-            const items = Array.isArray(entry) ? entry : [entry]
+            const items = (Array.isArray(entry) ? entry : [entry]).filter((p) => p?.price != null)
             for (const p of items) sum += Number(p.price)
         }
 
         const fan = parts.fan?.[0]
-        if (fan) sum += Number(fan.price) * fanCount
+        if (fan?.price != null) sum += Number(fan.price) * fanCount
 
         return sum
     }, [parts, fanCount])
@@ -87,12 +96,21 @@ export default function Sidebar() {
         },
         onMutate: () => {
             clearBuild()
+            setGenerating(true)
+        },
+        onError: () => {
+            clearBuild()
+        },
+        onSettled: () => {
+            setGenerating(false)
         },
         onSuccess: (data) => {
             setBuild(data)
             queryClient.invalidateQueries({ queryKey: ['profile', user.id] })
         },
     })
+
+    const busy = generate.isPending || generating
 
     return (
         <Stack h="100%" gap="md">
@@ -122,8 +140,8 @@ export default function Sidebar() {
             ) : (
                 <Button
                     onClick={() => generate.mutate()}
-                    loading={generate.isPending}
-                    disabled={generate.isPending}
+                    loading={busy}
+                    disabled={busy}
                 >
                     Generate build
                 </Button>
@@ -162,6 +180,15 @@ export default function Sidebar() {
                             {liveTotal?.toFixed(2)} EUR
                         </Badge>
                     </Group>
+
+                    {hasSwaps && (
+                        <Group justify="space-between" wrap="nowrap">
+                            <Text size="xs" c="dimmed">Build modified</Text>
+                            <Button size="compact-xs" variant="subtle" onClick={resetToOriginal}>
+                                Reset to AI build
+                            </Button>
+                        </Group>
+                    )}
 
                     <Divider />
 
@@ -205,13 +232,30 @@ export default function Sidebar() {
                                 SLOT_ORDER.flatMap((slot) => {
                                     const entry = parts[slot]
                                     if (!entry) return []
-                                    const items = Array.isArray(entry) ? entry : [entry]
-                                    return items.map((p) => (
-                                        <Group key={p.id} justify="space-between" wrap="nowrap">
-                                            <Text size="sm" lineClamp={1}>{p.name}</Text>
-                                            <Text size="sm" c="dimmed">{Number(p.price).toFixed(2)} €</Text>
-                                        </Group>
-                                    ))
+
+                                    const items = (Array.isArray(entry) ? entry : [entry])
+                                        .filter((p) => p?.id)
+
+                                    return items.map((p) => {
+                                        const swapped = originalComponentIds
+                                            && !originalComponentIds.includes(p.id)
+
+                                        return (
+                                            <Group key={p.id} justify="space-between" wrap="nowrap">
+                                                <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
+                                                    <Text size="sm" lineClamp={1}>{p.name}</Text>
+                                                    {swapped && (
+                                                        <Badge size="xs" variant="light" color="orange">
+                                                            swapped
+                                                        </Badge>
+                                                    )}
+                                                </Group>
+                                                <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                                                    {Number(p.price).toFixed(2)} €
+                                                </Text>
+                                            </Group>
+                                        )
+                                    })
                                 })
                             ) : (
                                 <Loader size="sm" />

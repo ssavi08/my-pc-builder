@@ -1,14 +1,8 @@
-import { AppShell, Burger, Group, Text, Switch, useMantineColorScheme, Button, Menu } from '@mantine/core'
+import { AppShell, Burger, useMantineColorScheme } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { Outlet, Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabaseClient'
-import { useAuthStore } from '../../store/useAuthStore'
-import { useUIStore } from '../../store/useUIStore'
-import AccountModal from './AccountModal'
-import SavedBuildsModal from './SavedBuildsModal'
-import AuthModal from './AuthModal'
+import { Outlet } from 'react-router-dom'
+import NavbarContent from './NavbarContent'
 import Sidebar from './Sidebar'
-import ComponentModal from './ComponentModal'
 
 const burgerStyle = {
     position: 'fixed',
@@ -24,10 +18,7 @@ const burgerStyle = {
 export default function Layout() {
     const [mobileOpened, { toggle: toggleMobile }] = useDisclosure()
     const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme()
-
-    const user = useAuthStore((s) => s.user)
-    const openModal = useUIStore((s) => s.openModal)
+    const { colorScheme } = useMantineColorScheme()
 
     return (
         <AppShell
@@ -40,41 +31,7 @@ export default function Layout() {
             padding={0}
         >
             <AppShell.Header>
-                <Group h="100%" px="md" justify="space-between">
-                    <Text fw={700}>MyPCBuilder</Text>
-                     <Group gap="xs">
-                        {user ? (
-                            <Menu shadow="md" width={200} position="bottom-end">
-                                <Menu.Target>
-                                    <Button variant="subtle" color="gray">Profile</Button>
-                                </Menu.Target>
-
-                                <Menu.Dropdown>
-                                    <Menu.Item onClick={() => openModal('saved-builds')}>
-                                        Saved builds
-                                    </Menu.Item>
-                                    <Menu.Item onClick={() => openModal('account')}>
-                                        Account
-                                    </Menu.Item>
-                                    <Menu.Divider />
-                                    <Menu.Item color="red" onClick={() => supabase.auth.signOut()}>
-                                        Sign out
-                                    </Menu.Item>
-                                </Menu.Dropdown>
-                            </Menu>
-                        ) : (
-                            <Button variant="subtle" color="gray" onClick={() => openModal('login')}>
-                                Login
-                            </Button>
-                        )}
-
-                        <Button component={Link} to="/about" variant="subtle" color="gray">
-                            About
-                        </Button>
-
-                        <Switch checked={colorScheme === 'dark'} onChange={toggleColorScheme} />
-                    </Group>
-                </Group>
+                <NavbarContent />
             </AppShell.Header>
 
             <AppShell.Navbar p="md">
@@ -106,11 +63,6 @@ export default function Layout() {
             >
                 <Outlet />
             </AppShell.Main>
-
-            <AuthModal />
-            <AccountModal />
-            <SavedBuildsModal />
-            <ComponentModal />
         </AppShell>
     )
 }
