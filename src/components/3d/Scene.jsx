@@ -5,13 +5,11 @@ import DefaultBuild from './DefaultBuild';
 import { MM } from '../../lib/constants'
 import ComputerAssembly from './ComputerAssembly';
 import { useBuildStore } from '../../store/useBuildStore'
-import { Stats } from '@react-three/drei'
 
 export default function Scene() {
 
   const componentIds = useBuildStore((s) => s.componentIds)
-  console.log('Scene componentIds:', componentIds)
-  
+
   return (
     <Canvas camera={{ position: [-0.5, 0, 0.5], fov: 45}} style={{width: '100%', height: '100%'}}>
 
@@ -30,9 +28,7 @@ export default function Scene() {
         minDistance={0.5} maxDistance={1}
       />
 
-      {/* <axesHelper arg={[5]} /> */}
-
-      {/* <Stats /> */}
+      {/* <axesHelper args={[5]} /> */}
     </Canvas>
   )
 }

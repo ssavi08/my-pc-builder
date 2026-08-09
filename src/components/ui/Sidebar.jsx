@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-    Stack, Select, Button, Alert, Text, Group, Divider, Box,
+    Stack, Select, Button, Alert, Text, Group, Divider,
     ScrollArea, ActionIcon, Accordion, Badge, Loader, Switch, UnstyledButton,
 } from '@mantine/core'
 import { supabase } from '../../lib/supabaseClient'
@@ -266,6 +266,7 @@ function BuildList({ parts }) {
     const componentIds = useBuildStore((s) => s.componentIds)
     const originalComponentIds = useBuildStore((s) => s.originalComponentIds)
     const resetToOriginal = useBuildStore((s) => s.resetToOriginal)
+    const fanCount = useBuildStore((s) => s.fanCount)
 
     const hasSwaps = useMemo(() => {
         if (!componentIds || !originalComponentIds) return false

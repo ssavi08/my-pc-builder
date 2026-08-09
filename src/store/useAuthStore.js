@@ -4,8 +4,7 @@ import { useBuildStore } from './useBuildStore'
 
 export const useAuthStore = create((set) => ({
     user: null,
-    loading: true,
-    setUser: (user) => set({ user, loading: false }),
+    setUser: (user) => set({ user }),
 }))
 
 supabase.auth.getSession().then(({ data }) => {
