@@ -289,6 +289,23 @@ function BuildList({ parts }) {
                 const entry = parts[slot]
                 if (!entry) return []
 
+                if (slot === 'fan') {
+                    const fan = Array.isArray(entry) ? entry[0] : entry
+                    if (!fan?.id || !fanCount) return []
+
+                    return [(
+                        <Group key={fan.id} justify="space-between" wrap="nowrap">
+                            <UnstyledButton onClick={() => selectComponent(fan.id)} style={{ minWidth: 0, flex: 1 }}>
+                                <Text size="sm" lineClamp={1} style={{ cursor: 'pointer' }}>
+                                    {fan.name} ×{fanCount}
+                                </Text>
+                            </UnstyledButton>
+                            <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                                {(Number(fan.price) * fanCount).toFixed(2)} €
+                            </Text>
+                        </Group>
+                    )]
+                }
                 const items = (Array.isArray(entry) ? entry : [entry]).filter((p) => p?.id)
 
                 return items.map((p) => (
