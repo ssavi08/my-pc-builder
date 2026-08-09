@@ -1,4 +1,4 @@
-import { createTheme, Switch } from '@mantine/core'
+import { createTheme, Switch, Modal } from '@mantine/core'
 
 export const theme = createTheme({
     fontFamily: 'Inter, sans-serif',
@@ -32,6 +32,12 @@ export const theme = createTheme({
         Switch: Switch.extend(
             { styles: { track: { cursor: 'pointer' } }}
         ),
+
+        Modal: Modal.extend({
+            defaultProps: {
+                zIndex: 300,
+            },
+        }),
     }
 
 })
