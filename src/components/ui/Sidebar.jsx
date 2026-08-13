@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
     Stack, Select, Button, Alert, Text, Group, Divider,
-    ScrollArea, ActionIcon, Accordion, Badge, Loader, Switch, UnstyledButton,
+    ScrollArea, ActionIcon, Accordion, Badge, Loader, Switch, UnstyledButton, TextInput,
 } from '@mantine/core'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
+import { useSaveBuild } from '../../lib/useSaveBuild'
 import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
@@ -22,6 +23,8 @@ export default function Sidebar() {
     const [purpose, setPurpose] = useState('gaming')
     const [budget, setBudget] = useState(1200)
     const [openSection, setOpenSection] = useState('generate')
+    const [naming, setNaming] = useState(false)
+    const [buildName, setBuildName] = useState('')
 
     const user = useAuthStore((s) => s.user)
     const openModal = useUIStore((s) => s.openModal)
@@ -36,6 +39,8 @@ export default function Sidebar() {
     const setFanCount = useBuildStore((s) => s.setFanCount)
     const clearBuild = useBuildStore((s) => s.clearBuild)
     const setGenerating = useBuildStore((s) => s.setGenerating)
+    const saveBuild = useSaveBuild()
+    const reasoning = useBuildStore((s) => s.reasoning)
 
     const { data: parts } = useBuildParts(componentIds)
     const maxFans = parts?.cooler?.coolerType === 'aio' ? MAX_FANS_AIO : MAX_FANS_AIR
@@ -66,6 +71,40 @@ export default function Sidebar() {
         const allowed = BUDGET_TIERS.filter((t) => t.purposes.includes(next))
         const max = Number(allowed[allowed.length - 1].value)
         if (budget > max) setBudget(max)
+    }
+
+    function startNaming() {
+    const label = purpose.charAt(0).toUpperCase() + purpose.slice(1)
+    setBuildName(`${label} ${budget} €`)
+    setNaming(true)
+    }
+
+    function cancelNaming() {
+        setNaming(false)
+        setBuildName('')
+        saveBuild.reset()
+    }
+
+    function confirmSave() {
+        const name = buildName.trim()
+        if (!name) return
+
+        saveBuild.mutate(
+            {
+                name,
+                purpose,
+                budget,
+                componentIds,
+                fanCount,
+                reasoning,
+            },
+            {
+                onSuccess: () => {
+                    setNaming(false)
+                    setBuildName('')
+                },
+            }
+        )
     }
 
     const generate = useMutation({
@@ -229,9 +268,49 @@ export default function Sidebar() {
                         </Badge>
                     </Group>
 
-                    <Button fullWidth variant="light" disabled>
-                        Save build
-                    </Button>
+                    {saveBuild.isError && (
+                        <Text size="xs" c="red">Could not save. Please try again.</Text>
+                    )}
+
+                    {saveBuild.isSuccess && !naming && (
+                        <Text size="xs" c="green">Build saved.</Text>
+                    )}
+
+                    {!user ? (
+                        <Button fullWidth variant="light" onClick={() => openModal('login')}>
+                            Log in to save
+                        </Button>
+                    ) : naming ? (
+                        <Stack gap="xs">
+                            <TextInput
+                                value={buildName}
+                                onChange={(e) => setBuildName(e.currentTarget.value)}
+                                placeholder="Build name"
+                                maxLength={60}
+                                data-autofocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') confirmSave()
+                                    if (e.key === 'Escape') cancelNaming()
+                                }}
+                            />
+                            <Group grow gap="xs">
+                                <Button variant="default" onClick={cancelNaming}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={confirmSave}
+                                    loading={saveBuild.isPending}
+                                    disabled={!buildName.trim()}
+                                >
+                                    Save
+                                </Button>
+                            </Group>
+                        </Stack>
+                    ) : (
+                        <Button fullWidth variant="light" onClick={startNaming}>
+                            Save build
+                        </Button>
+                    )}
                 </Stack>
             )}
         </Stack>

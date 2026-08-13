@@ -16,6 +16,13 @@ export const useBuildStore = create((set) => ({
         reasoning: build.reasoning,
     }),
 
+    loadBuild: (saved) => set({
+        componentIds: saved.component_ids,
+        originalComponentIds: saved.component_ids,
+        fanCount: saved.fan_count ?? 0,
+        reasoning: saved.reasoning ?? null,
+    }),
+
     swapComponent: (oldId, newId) => set((state) => ({
         componentIds: state.componentIds.map((id) => (id === oldId ? newId : id)),
     })),

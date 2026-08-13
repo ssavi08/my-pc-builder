@@ -18,15 +18,13 @@ export default function Scene() {
       <directionalLight position={[-5, 3, -5]} intensity={0.6} />
 
       <Suspense fallback={null}>
-        <Environment preset='city' />
+        <Environment preset='studio' />
         <Center> 
           {componentIds ? <ComputerAssembly scale={MM} /> : <DefaultBuild scale={MM} />}
         </Center>
       </Suspense>
 
-      <OrbitControls enablePan={true} enableZoom={true} enableRotate={true}
-        minDistance={0.5} maxDistance={1}
-      />
+      <OrbitControls enablePan={false} enableZoom enableRotate minDistance={0.5} maxDistance={1.5} />
 
       {/* <axesHelper args={[5]} /> */}
     </Canvas>
