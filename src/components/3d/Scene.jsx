@@ -18,7 +18,7 @@ export default function Scene() {
       <directionalLight position={[-5, 3, -5]} intensity={0.6} />
 
       <Suspense fallback={null}>
-        <Environment preset='studio' />
+        <Environment files="/hdri/studio_small_03_1k.hdr" />
         <Center> 
           {componentIds ? <ComputerAssembly scale={MM} /> : <DefaultBuild scale={MM} />}
         </Center>

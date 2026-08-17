@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
     Stack, Select, Button, Alert, Text, Group, Divider,
@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
-import { useSaveBuild } from '../../lib/useSaveBuild'
+import { useSaveBuild, useUpdateBuild  } from '../../lib/useSaveBuild'
 import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
@@ -39,7 +39,14 @@ export default function Sidebar() {
     const setFanCount = useBuildStore((s) => s.setFanCount)
     const clearBuild = useBuildStore((s) => s.clearBuild)
     const setGenerating = useBuildStore((s) => s.setGenerating)
+
+    const savedBuildId = useBuildStore((s) => s.savedBuildId)
+    const savedBuildName = useBuildStore((s) => s.savedBuildName)
+    const markSaved = useBuildStore((s) => s.markSaved)
     const saveBuild = useSaveBuild()
+    const archiveBuild = useSaveBuild()
+    const updateBuild = useUpdateBuild()
+
     const reasoning = useBuildStore((s) => s.reasoning)
 
     const { data: parts } = useBuildParts(componentIds)
@@ -49,6 +56,14 @@ export default function Sidebar() {
         () => BUDGET_TIERS.filter((t) => t.purposes.includes(purpose)),
         [purpose]
     )
+
+
+    useEffect(() => {
+        saveBuild.reset()
+        updateBuild.reset()
+        setNaming(false)
+        setBuildName('')
+    }, [componentIds])
 
     const liveTotal = useMemo(() => {
         if (!parts) return null
@@ -90,21 +105,27 @@ export default function Sidebar() {
         if (!name) return
 
         saveBuild.mutate(
+            { name, purpose, budget, componentIds, fanCount, reasoning },
             {
-                name,
-                purpose,
-                budget,
-                componentIds,
-                fanCount,
-                reasoning,
-            },
-            {
-                onSuccess: () => {
+                onSuccess: (row) => {
+                    markSaved(row.id, row.name)
                     setNaming(false)
                     setBuildName('')
                 },
             }
         )
+    }
+
+    function handleUpdate() {
+        updateBuild.mutate({
+            id: savedBuildId,
+            name: savedBuildName,
+            purpose,
+            budget,
+            componentIds,
+            fanCount,
+            reasoning,
+        })
     }
 
     const generate = useMutation({
@@ -143,6 +164,18 @@ export default function Sidebar() {
             setBuild(data)
             setOpenSection('build')
             queryClient.invalidateQueries({ queryKey: ['profile', user.id] })
+
+            // archive every generation so nothing is lost if the user doesn't save
+            const label = purpose.charAt(0).toUpperCase() + purpose.slice(1)
+            archiveBuild.mutate({
+                name: `${label} ${budget} €`,
+                purpose,
+                budget,
+                componentIds: data.componentIds,
+                fanCount: 0,
+                reasoning: data.reasoning,
+                autoSaved: true,
+            })
         },
     })
 
@@ -276,6 +309,10 @@ export default function Sidebar() {
                         <Text size="xs" c="green">Build saved.</Text>
                     )}
 
+                    {updateBuild.isSuccess && (
+                        <Text size="xs" c="green">Build updated.</Text>
+                    )}
+
                     {!user ? (
                         <Button fullWidth variant="light" onClick={() => openModal('login')}>
                             Log in to save
@@ -294,9 +331,7 @@ export default function Sidebar() {
                                 }}
                             />
                             <Group grow gap="xs">
-                                <Button variant="default" onClick={cancelNaming}>
-                                    Cancel
-                                </Button>
+                                <Button variant="default" onClick={cancelNaming}>Cancel</Button>
                                 <Button
                                     onClick={confirmSave}
                                     loading={saveBuild.isPending}
@@ -305,6 +340,20 @@ export default function Sidebar() {
                                     Save
                                 </Button>
                             </Group>
+                        </Stack>
+                    ) : savedBuildId ? (
+                        <Stack gap={4}>
+                            <Button
+                                fullWidth
+                                variant="light"
+                                onClick={handleUpdate}
+                                loading={updateBuild.isPending}
+                            >
+                                Update build
+                            </Button>
+                            <Text size="xs" c="dimmed" ta="center" lineClamp={1}>
+                                Editing “{savedBuildName}”
+                            </Text>
                         </Stack>
                     ) : (
                         <Button fullWidth variant="light" onClick={startNaming}>

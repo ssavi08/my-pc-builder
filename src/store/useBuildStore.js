@@ -6,6 +6,8 @@ export const useBuildStore = create((set) => ({
     fanCount: 0,
     reasoning: null,
     generating: false,
+    savedBuildId: null,
+    savedBuildName: null,
 
     setGenerating: (v) => set({ generating: v }),
 
@@ -14,6 +16,8 @@ export const useBuildStore = create((set) => ({
         originalComponentIds: build.componentIds,
         fanCount: 0,
         reasoning: build.reasoning,
+        savedBuildId: null,        
+        savedBuildName: null,
     }),
 
     loadBuild: (saved) => set({
@@ -21,6 +25,8 @@ export const useBuildStore = create((set) => ({
         originalComponentIds: saved.component_ids,
         fanCount: saved.fan_count ?? 0,
         reasoning: saved.reasoning ?? null,
+        savedBuildId: saved.auto_saved ? null : saved.id,   
+        savedBuildName: saved.auto_saved ? null : saved.name,
     }),
 
     swapComponent: (oldId, newId) => set((state) => ({
@@ -38,5 +44,9 @@ export const useBuildStore = create((set) => ({
         originalComponentIds: null,
         fanCount: 0,
         reasoning: null,
+        savedBuildId: null,
+        savedBuildName: null,
     }),
+
+    markSaved: (id, name) => set({ savedBuildId: id, savedBuildName: name }),
 }))

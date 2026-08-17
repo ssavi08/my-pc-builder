@@ -28,6 +28,9 @@ export default function NavbarContent() {
                         </Menu.Target>
 
                         <Menu.Dropdown>
+                            <Menu.Item onClick={() => openModal('history')}>
+                                Recent builds
+                            </Menu.Item>
                             <Menu.Item onClick={() => openModal('saved-builds')}>
                                 Saved builds
                             </Menu.Item>

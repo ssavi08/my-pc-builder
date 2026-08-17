@@ -5,7 +5,7 @@ import AboutPage from './pages/AboutPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import AuthModal from './components/ui/AuthModal'
 import AccountModal from './components/ui/AccountModal'
-import SavedBuildsModal from './components/ui/SavedBuildsModal'
+import BuildListModal from './components/ui/BuildListModal'
 import ComponentModal from './components/ui/ComponentModal'
 
 export default function App() {
@@ -21,8 +21,22 @@ export default function App() {
 
             <AuthModal />
             <AccountModal />
-            <SavedBuildsModal />
             <ComponentModal />
+
+            <BuildListModal
+                modalName="saved-builds"
+                title="Saved builds"
+                autoSaved={false}
+                emptyText="No saved builds yet."
+                emptyHint="Generate a build, then use Save build in the sidebar."
+            />
+            <BuildListModal
+                modalName="history"
+                title="Recent builds"
+                autoSaved={true}
+                emptyText="No recent builds."
+                emptyHint="Every build you generate is kept here automatically."
+            />
         </>
     )
 }

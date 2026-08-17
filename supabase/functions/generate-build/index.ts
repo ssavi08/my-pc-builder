@@ -7,12 +7,20 @@ const corsHeaders = {
 
 const MIN_BUDGET = 600
 const MAX_BUDGET = 9000
-const MIN_BUDGET_USE = 0.80
-const MAX_ATTEMPTS = 2
+const MAX_ATTEMPTS = 3
 
 // Fans are NOT chosen by the model. The user adds them in the UI.
 // Every build carries this id so the client always has a fan model and price.
 const DEFAULT_FAN_ID = 'fan-arctic-p12-pro-a-rgb-120mm'
+
+// The underspend floor exists to stop the model lowballing a generous budget.
+// Near the catalogue floor (~485 EUR for a compatible build) there is nothing to
+// lowball with, and a tight floor leaves a window too narrow to hit reliably.
+function minBudgetUse(budget: number): number {
+  if (budget < 800) return 0.60
+  if (budget < 1200) return 0.72
+  return 0.80
+}
 
 const SYSTEM_PROMPT = `You are a PC building expert. Build a complete, compatible PC from the provided candidate parts, within the user's budget and suited to their purpose.
 
@@ -33,15 +41,18 @@ Do NOT choose case fans. They are not your concern and are not in the candidate 
 ## NEVER REPEAT AN ID
 Each id appears at most once in componentIds.
 
-## BUDGET - BOTH LIMITS ARE HARD RULES
+## BUDGET - THE CEILING IS ABSOLUTE
 Let TOTAL = sum of all component prices.
-TOTAL MUST NOT exceed the budget.
-TOTAL MUST be AT LEAST 80% of the budget. A build that spends far less than the budget is a FAILED build.
-The user chose their budget deliberately. If they say 1500 EUR they want a 1500 EUR machine, not a 900 EUR one.
-Aim for 90-95% of the budget so the user has a little room to add case fans afterwards.
-Before answering, add up your chosen prices. If TOTAL is below 80% of the budget, choose better parts until it is not:
-- spend more on the gpu first (for gaming), or the cpu (for work and content creation)
-- then more ram capacity, then faster or larger storage, then a better motherboard
+TOTAL MUST NOT exceed the budget. This is the rule that matters most.
+TOTAL should also not be far below the budget - the user chose it deliberately.
+Aim for 85-95% of the budget.
+
+Before you answer, ADD UP YOUR CHOSEN PRICES ONE BY ONE and compare the total to the budget.
+If the total is over the budget, replace the SINGLE most expensive part with a cheaper one
+from the list. Do not rebuild from scratch - change one part, then add up again.
+
+Tight budgets need care. Below 800 EUR the margins are small, so start from the
+cheaper end of each slot and only upgrade one part at a time while the total allows it.
 Do not state price totals or percentages in your reasoning. Explain the choices, not the arithmetic.
 
 ## INTEGRATED GRAPHICS - READ CAREFULLY
@@ -72,6 +83,7 @@ Physical limits: at most 1 M.2, at most 2 2.5-inch SSDs, at most 2 3.5-inch HDDs
 Office and school: one M.2 or one 2.5-inch SSD is enough.
 Gaming: one fast M.2; add an SSD only if budget allows.
 Content creation: one M.2 plus large HDD(s) or a second SSD.
+On tight budgets storage is the first place to economise - one cheap drive is fine.
 On larger budgets, prefer higher capacity drives over the cheapest option.
 
 ## SELECTION QUALITY
@@ -187,12 +199,21 @@ async function validateBuild(supabase: any, build: any, budget: number) {
 
   const total = rows.reduce((sum: number, r: any) => sum + Number(r.price), 0)
 
-  if (total > budget)
-    errors.push(`Over budget: ${total.toFixed(2)} EUR > ${budget} EUR`)
+  if (total > budget) {
+    const over = (total - budget).toFixed(2)
+    // name the priciest part so the retry has an obvious single substitution
+    const priciest = rows.reduce((a: any, b: any) => (Number(b.price) > Number(a.price) ? b : a))
+    errors.push(
+      `Over budget by ${over} EUR: ${total.toFixed(2)} EUR > ${budget} EUR. ` +
+      `The most expensive part is ${priciest.id} at ${priciest.price} EUR - ` +
+      `replace that one with something cheaper from the ${priciest.slot} list.`,
+    )
+  }
 
-  if (total < budget * MIN_BUDGET_USE) {
+  const minUse = minBudgetUse(budget)
+  if (total < budget * minUse) {
     const pct = (total / budget * 100).toFixed(1)
-    const target = (budget * 0.92).toFixed(0)
+    const target = (budget * 0.90).toFixed(0)
     errors.push(`Underspent: ${total.toFixed(2)} EUR is only ${pct}% of the ${budget} EUR budget. Choose better parts so the total is near ${target} EUR.`)
   }
 
