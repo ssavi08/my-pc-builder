@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
     Stack, Select, Button, Alert, Text, Group, Divider,
-    ScrollArea, ActionIcon, Accordion, Badge, Loader, Switch, UnstyledButton, TextInput,
+    ScrollArea, ActionIcon, Accordion, Badge, Loader, UnstyledButton, TextInput,
 } from '@mantine/core'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -271,17 +271,6 @@ export default function Sidebar() {
                                     <Text size="xs" c="dimmed">Add fans to improve airflow</Text>
                                 )}
                             </Stack>
-
-                            <Divider />
-
-                            <Group justify="space-between">
-                                <Text size="sm">Side panels</Text>
-                                <Switch
-                                    checked={panelsVisible}
-                                    onChange={togglePanels}
-                                    styles={{ track: { cursor: 'pointer' } }}
-                                />
-                            </Group>
                         </Stack>
                     </Section>
                 )}
@@ -296,7 +285,7 @@ export default function Sidebar() {
                 >
                     <Group justify="space-between">
                         <Text fw={600}>Total</Text>
-                        <Badge size="lg" variant="light" color={liveTotal > budget ? 'red' : 'blue'}>
+                        <Badge size="lg" variant="light" color={'blue'}>
                             {liveTotal?.toFixed(2)} EUR
                         </Badge>
                     </Group>
@@ -447,6 +436,7 @@ function BuildList({ parts }) {
                                 <Text size="sm" lineClamp={1} style={{ cursor: 'pointer' }}>
                                     {p.name}
                                 </Text>
+                                <Text size="sm" c="dimmed">ⓘ</Text>
                                 {originalComponentIds && !originalComponentIds.includes(p.id) && (
                                     <Badge size="xs" variant="light" color="orange">swapped</Badge>
                                 )}
