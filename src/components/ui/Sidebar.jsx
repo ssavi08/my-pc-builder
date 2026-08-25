@@ -246,36 +246,32 @@ export default function Sidebar() {
                         <BuildList parts={parts} />
                     </Section>
                 )}
-
-                {componentIds && (
-                    <Section value="modify" label="Modify" open={openSection}>
-                        <Stack gap="md">
-                            <Stack gap={4}>
-                                <Group justify="space-between">
-                                    <Text size="sm">Case fans</Text>
-                                    <Group gap="xs">
-                                        <ActionIcon
-                                            variant="default"
-                                            onClick={() => setFanCount(fanCount - 1)}
-                                            disabled={fanCount <= 0}
-                                        >−</ActionIcon>
-                                        <Text size="sm" w={20} ta="center">{fanCount}</Text>
-                                        <ActionIcon
-                                            variant="default"
-                                            onClick={() => setFanCount(Math.min(fanCount + 1, maxFans))}
-                                            disabled={fanCount >= maxFans}
-                                        >+</ActionIcon>
-                                    </Group>
-                                </Group>
-                                {fanCount === 0 && (
-                                    <Text size="xs" c="dimmed">Add fans to improve airflow</Text>
-                                )}
-                            </Stack>
-                        </Stack>
-                    </Section>
-                )}
             </Accordion>
-
+            
+            {componentIds && (
+                <Stack gap={4} mt="md">
+                    <Group justify="space-between">
+                        <Text size="sm">Case fans</Text>
+                        <Group gap="xs">
+                            <ActionIcon
+                                variant="default"
+                                onClick={() => setFanCount(fanCount - 1)}
+                                disabled={fanCount <= 0}
+                            >−</ActionIcon>
+                            <Text size="sm" w={20} ta="center">{fanCount}</Text>
+                            <ActionIcon
+                                variant="default"
+                                onClick={() => setFanCount(Math.min(fanCount + 1, maxFans))}
+                                disabled={fanCount >= maxFans}
+                            >+</ActionIcon>
+                        </Group>
+                    </Group>
+                    {fanCount === 0 && (
+                        <Text size="xs" c="dimmed">Add fans to improve airflow</Text>
+                    )}
+                </Stack>
+            )}
+            
             {componentIds && (
                 <Stack
                     gap="xs"
