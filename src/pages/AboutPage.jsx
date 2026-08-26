@@ -44,11 +44,11 @@ export default function AboutPage() {
                     <Stack gap="xs">
                         <Title order={4}>How it works</Title>
                         <Text>
-                            The AI picks from a shortlist filtered to the budget, not from the
-                            whole catalogue. Whatever it returns is then checked against the
+                            The AI picks from a shortlist, which is filtered by your selected budget, from our
+                            component catalogue. Whatever it returns is then checked against the
                             database — socket, memory type, card length, power draw, the total
-                            price. If something doesn't fit, it gets told what and tries again.
-                            A build that fails those checks never reaches the screen.
+                            price. If something doesn't fit, it gets told what it got wrong and tries again.
+                            A build that fails those checks never reaches the screen, and your credit is not spent.
                         </Text>
                     </Stack>
 

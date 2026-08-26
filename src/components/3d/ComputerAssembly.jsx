@@ -6,8 +6,9 @@ import { useBuildStore } from '../../store/useBuildStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildParts } from '../../lib/useBuildParts'
 
-export default function ComputerAssembly(props) {
-    const componentIds = useBuildStore((s) => s.componentIds)
+export default function ComputerAssembly({ componentIds: idsProp, fanCount: fanProp, ...props }) {
+    const storeIds = useBuildStore((s) => s.componentIds)
+    const componentIds = idsProp ?? storeIds
 
     const { data: parts, isLoading, isError } = useBuildParts(componentIds)
 
@@ -34,7 +35,7 @@ export default function ComputerAssembly(props) {
 
                         <StorageDrives drives={bayDrives} nodes={caseNodes} prefix="ANCHOR_ssd_" />
                         <StorageDrives drives={hddDrives} nodes={caseNodes} prefix="ANCHOR_hdd_" />
-                        <Fans parts={parts} caseNodes={caseNodes} />
+                        <Fans parts={parts} caseNodes={caseNodes} fanCount={fanProp} />
 
                         {parts.motherboard?.modelUrl && (
                             <Anchored nodes={caseNodes} name="ANCHOR_motherboard">
@@ -123,8 +124,9 @@ function StorageDrives({ drives, nodes, prefix }) {
     })
 }
 
-function Fans({ parts, caseNodes }) {
-    const fanCount = useBuildStore((s) => s.fanCount)
+function Fans({ parts, caseNodes, fanCount: fanProp }) {
+    const storeFanCount = useBuildStore((s) => s.fanCount)
+    const fanCount = fanProp ?? storeFanCount
 
     const fan = parts.fan?.[0]
     if (!fan?.modelUrl || !fanCount) return null

@@ -10,7 +10,7 @@ import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
 import { useSaveBuild, useUpdateBuild  } from '../../lib/useSaveBuild'
-import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS } from '../../lib/constants'
+import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS, } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
 
@@ -455,7 +455,7 @@ function BuildList({ parts }) {
                                 <Text size="sm">Why these parts?</Text>
                             </Accordion.Control>
                             <Accordion.Panel>
-                                <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
+                                <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
                                     {reasoning}
                                 </Text>
                             </Accordion.Panel>

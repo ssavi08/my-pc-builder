@@ -1,8 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { Center, Environment, OrbitControls } from '@react-three/drei';
 import { Suspense } from 'react';
-import DefaultBuild from './DefaultBuild';
-import { MM } from '../../lib/constants'
+import { MM, DEFAULT_BUILD_IDS, DEFAULT_FAN_COUNT } from '../../lib/constants'
 import ComputerAssembly from './ComputerAssembly';
 import { useBuildStore } from '../../store/useBuildStore'
 
@@ -20,11 +19,25 @@ export default function Scene() {
       <Suspense fallback={null}>
         <Environment files="/hdri/studio_small_03_1k.hdr" />
         <Center> 
-          {componentIds ? <ComputerAssembly scale={MM} /> : <DefaultBuild scale={MM} />}
+                    {componentIds ? (
+              <ComputerAssembly scale={MM} />
+          ) : (
+              <ComputerAssembly
+                  scale={MM}
+                  componentIds={DEFAULT_BUILD_IDS}
+                  fanCount={DEFAULT_FAN_COUNT}
+              />
+          )}
         </Center>
       </Suspense>
 
-      <OrbitControls enablePan={false} enableZoom enableRotate minDistance={0.5} maxDistance={1.5} />
+      <OrbitControls
+        enablePan={false}
+        enableZoom
+        enableRotate
+        minDistance={0.35}
+        maxDistance={1.5}
+      />
 
       {/* <axesHelper args={[5]} /> */}
     </Canvas>

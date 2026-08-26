@@ -33,3 +33,19 @@ export const BUDGET_TIERS = [
 
 export const MAX_FANS_AIR = 6
 export const MAX_FANS_AIO = 4
+
+export const DEFAULT_BUILD_IDS = [
+    'case-deepcool-macube-110',
+    'mobo-gigabyte-a620m-ds3h',
+    'cpu-amd-ryzen-5-9600x',
+    'cooler-arctic-liquid-freezer-iii-pro-240-a-rgb-2x120mm',
+    'gpu-asus-amd-radeon-rx9060xt-prime-oc-8gb',
+    'ram-g-skill-aegis-16gb-2x8gb-ddr4-3200mhz',
+    'psu-asus-tuf-gaming-750b-750w',
+    'storage-m2-samsung-990-pro-1tb',
+    'storage-hdd-seagate-barracuda-8tb',
+    'fan-arctic-p12-pro-a-rgb-120mm',
+    'storage-ssd-silicon-power-a55-1tb',
+]
+
+export const DEFAULT_FAN_COUNT = 4
