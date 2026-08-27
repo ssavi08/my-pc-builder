@@ -10,7 +10,7 @@ import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
 import { useBuildParts } from '../../lib/useBuildParts'
 import { useSaveBuild, useUpdateBuild  } from '../../lib/useSaveBuild'
-import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS, } from '../../lib/constants'
+import { MAX_FANS_AIR, MAX_FANS_AIO, BUDGET_TIERS, PURPOSES, PURPOSE_LABELS } from '../../lib/constants'
 
 const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'storage', 'psu', 'fan']
 
@@ -28,8 +28,6 @@ export default function Sidebar() {
 
     const user = useAuthStore((s) => s.user)
     const openModal = useUIStore((s) => s.openModal)
-    const panelsVisible = useUIStore((s) => s.panelsVisible)
-    const togglePanels = useUIStore((s) => s.togglePanels)
     const queryClient = useQueryClient()
 
     const componentIds = useBuildStore((s) => s.componentIds)
@@ -88,10 +86,14 @@ export default function Sidebar() {
         if (budget > max) setBudget(max)
     }
 
+    // "Gaming 1200 €" — the same shape used for auto-saved history entries
+    function defaultBuildName() {
+        return `${PURPOSE_LABELS[purpose] ?? purpose} ${budget} €`
+    }
+
     function startNaming() {
-    const label = purpose.charAt(0).toUpperCase() + purpose.slice(1)
-    setBuildName(`${label} ${budget} €`)
-    setNaming(true)
+        setBuildName(defaultBuildName())
+        setNaming(true)
     }
 
     function cancelNaming() {
@@ -166,9 +168,8 @@ export default function Sidebar() {
             queryClient.invalidateQueries({ queryKey: ['profile', user.id] })
 
             // archive every generation so nothing is lost if the user doesn't save
-            const label = purpose.charAt(0).toUpperCase() + purpose.slice(1)
             archiveBuild.mutate({
-                name: `${label} ${budget} €`,
+                name: defaultBuildName(),
                 purpose,
                 budget,
                 componentIds: data.componentIds,
@@ -202,11 +203,7 @@ export default function Sidebar() {
                             value={purpose}
                             onChange={handlePurposeChange}
                             allowDeselect={false}
-                            data={[
-                                { value: 'school', label: 'School' },
-                                { value: 'work', label: 'Work' },
-                                { value: 'gaming', label: 'Gaming' },
-                            ]}
+                            data={PURPOSES}
                         />
 
                         <Select

@@ -1,10 +1,5 @@
 import { Card, Group, Stack, Text, Badge, ActionIcon } from '@mantine/core'
-
-const PURPOSE_LABELS = {
-    school: 'School',
-    work: 'Work',
-    gaming: 'Gaming',
-}
+import { PURPOSE_LABELS } from '../../lib/constants'
 
 function formatDate(iso) {
     return new Date(iso).toLocaleDateString('hr-HR', {

@@ -16,6 +16,18 @@ export const FAN_FILL_ORDER_WITH_AIO = [
     'ANCHOR_fan_front_3',
 ]
 
+// The three build purposes. These values are validated server-side by
+// generate-build, so the strings must stay in sync with that function.
+export const PURPOSES = [
+    { value: 'school', label: 'School' },
+    { value: 'work',   label: 'Work' },
+    { value: 'gaming', label: 'Gaming' },
+]
+
+export const PURPOSE_LABELS = Object.fromEntries(
+    PURPOSES.map((p) => [p.value, p.label])
+)
+
 export const BUDGET_TIERS = [
     { value: '600',  label: '600 EUR — entry, contains only iGPU',  purposes: ['school', 'work', 'gaming'] },
     { value: '800',  label: '800 EUR — budget',          purposes: ['school', 'work', 'gaming'] },
@@ -40,7 +52,7 @@ export const DEFAULT_BUILD_IDS = [
     'cpu-amd-ryzen-5-9600x',
     'cooler-arctic-liquid-freezer-iii-pro-240-a-rgb-2x120mm',
     'gpu-asus-amd-radeon-rx9060xt-prime-oc-8gb',
-    'ram-g-skill-aegis-16gb-2x8gb-ddr4-3200mhz',
+    'ram-kingston-fury-beast-16gb-2x8gb-ddr5-5600mhz',
     'psu-asus-tuf-gaming-750b-750w',
     'storage-m2-samsung-990-pro-1tb',
     'storage-hdd-seagate-barracuda-8tb',

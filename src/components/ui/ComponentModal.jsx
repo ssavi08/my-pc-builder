@@ -13,33 +13,23 @@ import { useBuildStore } from '../../store/useBuildStore'
 
 const SWAPPABLE = ['cpu', 'gpu', 'ram', 'storage']
 
-// typed columns worth showing, and how to label them
-const SPEC_LABELS = {
-    socket: 'Socket',
-    sockets: 'Supported sockets',
-    ram_type: 'Memory type',
-    form_factor: 'Form factor',
-    cooler_type: 'Cooler type',
-    ram_slots: 'RAM slots',
-    tdp: 'TDP',
-    wattage: 'Wattage',
-    gpu_length_mm: 'Length',
-    cooler_height_mm: 'Height',
-    radiator_mm: 'Radiator',
-    max_gpu_length_mm: 'Max GPU length',
-    max_cooler_height_mm: 'Max cooler height',
-    max_radiator_mm: 'Max radiator',
-}
-
-const UNITS = {
-    tdp: 'W',
-    wattage: 'W',
-    gpu_length_mm: 'mm',
-    cooler_height_mm: 'mm',
-    radiator_mm: 'mm',
-    max_gpu_length_mm: 'mm',
-    max_cooler_height_mm: 'mm',
-    max_radiator_mm: 'mm',
+// Typed columns worth showing, in render order: how to label them and what unit
+// to suffix. Key order here is the order the spec table renders.
+const SPEC_COLUMNS = {
+    socket: ['Socket'],
+    sockets: ['Supported sockets'],
+    ram_type: ['Memory type'],
+    form_factor: ['Form factor'],
+    cooler_type: ['Cooler type'],
+    ram_slots: ['RAM slots'],
+    tdp: ['TDP', 'W'],
+    wattage: ['Wattage', 'W'],
+    gpu_length_mm: ['Length', 'mm'],
+    cooler_height_mm: ['Height', 'mm'],
+    radiator_mm: ['Radiator', 'mm'],
+    max_gpu_length_mm: ['Max GPU length', 'mm'],
+    max_cooler_height_mm: ['Max cooler height', 'mm'],
+    max_radiator_mm: ['Max radiator', 'mm'],
 }
 
 function formatKey(key) {
@@ -88,10 +78,10 @@ export default function ComponentModal() {
 
     if (component) {
         // typed columns that are populated for this slot
-        for (const [key, label] of Object.entries(SPEC_LABELS)) {
+        for (const [key, [label, unit]] of Object.entries(SPEC_COLUMNS)) {
             const value = component[key]
             if (value === null || value === undefined) continue
-            rows.push([label, formatValue(value) + (UNITS[key] ?? '')])
+            rows.push([label, formatValue(value) + (unit ?? '')])
         }
 
         // everything in the specs jsonb
