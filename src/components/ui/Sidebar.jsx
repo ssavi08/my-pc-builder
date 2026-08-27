@@ -20,8 +20,6 @@ const SLOT_ORDER = ['case', 'motherboard', 'cpu', 'cooler', 'gpu', 'ram', 'stora
 const FILL = { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }
 
 export default function Sidebar() {
-    const [purpose, setPurpose] = useState('gaming')
-    const [budget, setBudget] = useState(1200)
     const [openSection, setOpenSection] = useState('generate')
     const [naming, setNaming] = useState(false)
     const [buildName, setBuildName] = useState('')
@@ -33,6 +31,10 @@ export default function Sidebar() {
     const componentIds = useBuildStore((s) => s.componentIds)
     const fanCount = useBuildStore((s) => s.fanCount)
     const generating = useBuildStore((s) => s.generating)
+    const purpose = useBuildStore((s) => s.purpose)
+    const budget = useBuildStore((s) => s.budget)
+    const setPurpose = useBuildStore((s) => s.setPurpose)
+    const setBudget = useBuildStore((s) => s.setBudget)
     const setBuild = useBuildStore((s) => s.setBuild)
     const setFanCount = useBuildStore((s) => s.setFanCount)
     const clearBuild = useBuildStore((s) => s.clearBuild)
@@ -50,10 +52,16 @@ export default function Sidebar() {
     const { data: parts } = useBuildParts(componentIds)
     const maxFans = parts?.cooler?.coolerType === 'aio' ? MAX_FANS_AIO : MAX_FANS_AIR
 
-    const budgetOptions = useMemo(
-        () => BUDGET_TIERS.filter((t) => t.purposes.includes(purpose)),
-        [purpose]
-    )
+    // A loaded build carries its own budget, which the current tiers may no longer
+    // offer for its purpose if the gating is ever changed. Keep it in the list so
+    // the Select shows the truth instead of rendering blank.
+    const budgetOptions = useMemo(() => {
+        const allowed = BUDGET_TIERS.filter((t) => t.purposes.includes(purpose))
+        if (allowed.some((t) => Number(t.value) === budget)) return allowed
+
+        return [...allowed, { value: String(budget), label: `${budget} EUR` }]
+            .sort((a, b) => Number(a.value) - Number(b.value))
+    }, [purpose, budget])
 
 
     useEffect(() => {
