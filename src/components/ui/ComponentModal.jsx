@@ -13,8 +13,8 @@ import { useBuildStore } from '../../store/useBuildStore'
 
 const SWAPPABLE = ['cpu', 'gpu', 'ram', 'storage']
 
-// Typed columns worth showing, in render order: how to label them and what unit
-// to suffix. Key order here is the order the spec table renders.
+// Typed columns worth showing, in render order: [label, unit].
+// Key order here is the order the spec table renders.
 const SPEC_COLUMNS = {
     socket: ['Socket'],
     sockets: ['Supported sockets'],
@@ -22,14 +22,36 @@ const SPEC_COLUMNS = {
     form_factor: ['Form factor'],
     cooler_type: ['Cooler type'],
     ram_slots: ['RAM slots'],
-    tdp: ['TDP', 'W'],
-    wattage: ['Wattage', 'W'],
-    gpu_length_mm: ['Length', 'mm'],
-    cooler_height_mm: ['Height', 'mm'],
-    radiator_mm: ['Radiator', 'mm'],
-    max_gpu_length_mm: ['Max GPU length', 'mm'],
-    max_cooler_height_mm: ['Max cooler height', 'mm'],
-    max_radiator_mm: ['Max radiator', 'mm'],
+    tdp: ['TDP', ' W'],
+    wattage: ['Wattage', ' W'],
+    gpu_length_mm: ['Length', ' mm'],
+    cooler_height_mm: ['Height', ' mm'],
+    radiator_mm: ['Radiator', ' mm'],
+    max_gpu_length_mm: ['Max GPU length', ' mm'],
+    max_cooler_height_mm: ['Max cooler height', ' mm'],
+    max_radiator_mm: ['Max radiator', ' mm'],
+}
+
+// specs jsonb keys whose generic Title Case would be wrong or unit-less.
+// Anything not listed here falls through to formatKey().
+const SPEC_KEYS = {
+    argb: ['ARGB'],
+    boost_clock: ['Boost clock'],
+    cache_mb: ['Cache', ' MB'],
+    capacity_gb: ['Capacity', ' GB'],
+    chip_brand: ['Chip'],
+    cl: ['CAS latency'],
+    fan_count: ['Fans'],
+    fan_size_mm: ['Fan size', ' mm'],
+    pwm: ['PWM'],
+    rating: ['Efficiency'],
+    read_mbps: ['Read speed', ' MB/s'],
+    rpm: ['RPM'],
+    size_mm: ['Size', ' mm'],
+    speed_mhz: ['Speed', ' MHz'],
+    vram_gb: ['VRAM', ' GB'],
+    wifi: ['Wi-Fi'],
+    write_mbps: ['Write speed', ' MB/s'],
 }
 
 function formatKey(key) {
@@ -87,7 +109,8 @@ export default function ComponentModal() {
         // everything in the specs jsonb
         for (const [key, value] of Object.entries(component.specs ?? {})) {
             if (value === null || value === undefined) continue
-            rows.push([formatKey(key), formatValue(value)])
+            const [label, unit] = SPEC_KEYS[key] ?? [formatKey(key)]
+            rows.push([label, formatValue(value) + (unit ?? '')])
         }
     }
 
