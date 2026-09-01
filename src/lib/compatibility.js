@@ -13,7 +13,7 @@ export function checkSwap(slot, candidate, parts) {
     if (slot === 'cpu') return checkCpu(candidate, parts)
     if (slot === 'gpu') return checkGpu(candidate, parts)
     if (slot === 'ram') return checkRam(candidate, parts)
-    return null   // storage has no cross-component constraints
+    return null   
 }
 
 function checkCpu(cpu, parts) {
@@ -23,20 +23,20 @@ function checkCpu(cpu, parts) {
     const psu = parts.psu
 
     if (mobo && cpu.socket !== mobo.socket) {
-        return `Needs socket ${mobo.socket}`
+        return `Potreban je socket ${mobo.socket}`
     }
 
     if (cooler?.sockets && !cooler.sockets.includes(cpu.socket)) {
-        return `Your cooler does not support ${cpu.socket}`
+        return `Vaš hladnjak ne podržava ${cpu.socket}`
     }
 
     if (!gpu && !cpu.igpu) {
-        return 'No integrated graphics, and this build has no GPU'
+        return 'Nema integrirane grafike, a konfiguracija nema grafičku karticu'
     }
 
     const draw = (cpu.tdp ?? 0) + (gpu?.tdp ?? 0)
     if (psu?.wattage && psu.wattage < Math.ceil(draw * PSU_HEADROOM)) {
-        return `Needs at least ${Math.ceil(draw * PSU_HEADROOM)}W, you have ${psu.wattage}W`
+        return `Potrebno je najmanje ${Math.ceil(draw * PSU_HEADROOM)} W, a imate ${psu.wattage} W`
     }
 
     return null
@@ -48,12 +48,12 @@ function checkGpu(gpu, parts) {
     const psu = parts.psu
 
     if (pcCase?.maxGpuLengthMm && gpu.gpu_length_mm > pcCase.maxGpuLengthMm) {
-        return `Too long: ${gpu.gpu_length_mm}mm, case fits ${pcCase.maxGpuLengthMm}mm`
+        return `Preduga: ${gpu.gpu_length_mm} mm, u kućište stane ${pcCase.maxGpuLengthMm} mm`
     }
 
     const draw = (cpu?.tdp ?? 0) + (gpu.tdp ?? 0)
     if (psu?.wattage && psu.wattage < Math.ceil(draw * PSU_HEADROOM)) {
-        return `Needs at least ${Math.ceil(draw * PSU_HEADROOM)}W, you have ${psu.wattage}W`
+        return `Potrebno je najmanje ${Math.ceil(draw * PSU_HEADROOM)} W, a imate ${psu.wattage} W`
     }
 
     return null
@@ -63,12 +63,12 @@ function checkRam(ram, parts) {
     const mobo = parts.motherboard
 
     if (mobo && ram.ram_type !== mobo.ramType) {
-        return `Needs ${mobo.ramType}`
+        return `Potreban je ${mobo.ramType}`
     }
 
     const modules = ram.specs?.modules ?? 1
     if (mobo?.ramSlots && modules > mobo.ramSlots) {
-        return `${modules} sticks, board has ${mobo.ramSlots} slots`
+        return `${modules} modula, a ploča ima ${mobo.ramSlots} utora`
     }
 
     return null

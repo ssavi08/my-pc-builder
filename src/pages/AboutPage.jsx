@@ -30,38 +30,40 @@ export default function AboutPage() {
 
             <Container size="sm" py="xl">
                 <Stack gap="lg">
-                    <Title order={1}>About</Title>
+                    <Title order={1}>O aplikaciji</Title>
 
                     <Text>
-                        Pick what the computer is for and how much you want to spend.
-                        MyPCBuilder puts together a compatible build and shows it in 3D —
-                        rotate it, take the side panel off, click any part to see its specs
-                        and what Croatian shops are charging for it right now.
+                        Odaberite namjenu računala i iznos koji želite potrošiti.
+                        MyPCBuilder sastavlja kompatibilnu konfiguraciju i prikazuje ju u 3D-u —
+                        zarotirajte je, skinite bočne stranice i kliknite bilo koju komponentu
+                        kako biste vidjeli njezine specifikacije i trenutne cijene u hrvatskim
+                        trgovinama.
                     </Text>
 
                     <Divider />
 
                     <Stack gap="xs">
-                        <Title order={4}>How it works</Title>
+                        <Title order={4}>Kako radi</Title>
                         <Text>
-                            The AI picks from a shortlist, which is filtered by your selected budget, from our
-                            component catalogue. Whatever it returns is then checked against the
-                            database — socket, memory type, card length, power draw, the total
-                            price. If something doesn't fit, it gets told what it got wrong and tries again.
-                            A build that fails those checks never reaches the screen, and your credit is not spent.
+                            Umjetna inteligencija bira iz užeg izbora komponenti našeg kataloga,
+                            filtriranog prema odabranom proračunu. Sve što vrati zatim se provjerava
+                            u bazi podataka — socket, tip memorije, duljina grafičke kartice,
+                            potrošnja i ukupna cijena. Ako nešto ne odgovara, model dobiva povratnu
+                            informaciju o pogrešci i pokušava ponovno. Konfiguracija koja ne prođe
+                            te provjere nikada ne dolazi na zaslon, a vaš kredit se ne troši.
                         </Text>
                     </Stack>
 
                     <Stack gap="xs">
-                        <Title order={4}>The data</Title>
+                        <Title order={4}>Podaci</Title>
                         <Text>
-                            Specs are entered by hand from manufacturer datasheets. Prices
-                            are pulled live from Croatian retailers and cached for a week.
+                            Specifikacije su ručno unesene iz tehničkih specifikacija proizvođača.
+                            Cijene se dohvaćaju uživo iz hrvatskih trgovina i pohranjuju tjedan dana.
                         </Text>
                     </Stack>
 
                     <Stack gap="xs">
-                        <Title order={4}>Built with</Title>
+                        <Title order={4}>Izrađeno pomoću</Title>
                         <Group gap="xs">
                             {TECH.map((t) => (
                                 <Badge key={t} variant="light">{t}</Badge>
@@ -72,11 +74,13 @@ export default function AboutPage() {
                     <Divider />
 
                     <Text size="sm" c="dimmed">
-                        Student project made by Sandro Savi 3rd year of CompSci at Faculty of Electrical Engineering, University of Osijek. Mentor: prof. dr. sc. Ivica Lukić
+                        Studentski projekt. Izradio Sandro Savi, 3. godina računarstva,
+                        Fakultet elektrotehnike, računarstva i informacijskih tehnologija Osijek (FERIT)
+                        Mentor: prof. dr. sc. Ivica Lukić
                     </Text>
 
                     <Button component={Link} to="/" size="md" w="fit-content">
-                        Generate a build
+                        Generiraj konfiguraciju
                     </Button>
                 </Stack>
             </Container>

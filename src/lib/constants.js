@@ -16,31 +16,45 @@ export const FAN_FILL_ORDER_WITH_AIO = [
     'ANCHOR_fan_front_3',
 ]
 
-// The three build purposes. These values are validated server-side by
-// generate-build, so the strings must stay in sync with that function.
+// The three build purposes. The `value` strings are validated server-side by
+// generate-build and must stay in English — only the labels are translated.
 export const PURPOSES = [
-    { value: 'school', label: 'School' },
-    { value: 'work',   label: 'Work' },
-    { value: 'gaming', label: 'Gaming' },
+    { value: 'school', label: 'Škola' },
+    { value: 'work',   label: 'Posao' },
+    { value: 'gaming', label: 'Igranje' },
 ]
 
 export const PURPOSE_LABELS = Object.fromEntries(
     PURPOSES.map((p) => [p.value, p.label])
 )
 
+// Slot keys come from the database in English. These are the Croatian names
+// shown in the interface — the keys themselves must not be translated.
+export const SLOT_LABELS = {
+    case: 'Kućište',
+    motherboard: 'Matična ploča',
+    cpu: 'Procesor',
+    cooler: 'Hladnjak',
+    gpu: 'Grafička kartica',
+    ram: 'Radna memorija',
+    storage: 'Pohrana',
+    psu: 'Napajanje',
+    fan: 'Ventilator',
+}
+
 export const BUDGET_TIERS = [
-    { value: '600',  label: '600 EUR — entry, contains only iGPU',  purposes: ['school', 'work', 'gaming'] },
-    { value: '800',  label: '800 EUR — budget',          purposes: ['school', 'work', 'gaming'] },
-    { value: '1000', label: '1000 EUR',                  purposes: ['school', 'work', 'gaming'] },
-    { value: '1200', label: '1200 EUR',                  purposes: ['school', 'work', 'gaming'] },
-    { value: '1500', label: '1500 EUR — mid range',      purposes: ['school', 'work', 'gaming'] },
-    { value: '2000', label: '2000 EUR',                  purposes: ['school', 'work', 'gaming'] },
-    { value: '2600', label: '2600 EUR',                  purposes: ['work', 'gaming'] },
-    { value: '3200', label: '3200 EUR — high end',       purposes: ['work', 'gaming'] },
-    { value: '4000', label: '4000 EUR',                  purposes: ['work', 'gaming'] },
-    { value: '5500', label: '5500 EUR — enthusiast',     purposes: ['gaming'] },
-    { value: '7500', label: '7500 EUR',                  purposes: ['gaming'] },
-    { value: '9000', label: '9000 EUR — maximum',        purposes: ['gaming'] },
+    { value: '600',  label: '600 EUR — početna razina, samo integrirana grafika', purposes: ['school', 'work', 'gaming'] },
+    { value: '800',  label: '800 EUR — pristupačno',      purposes: ['school', 'work', 'gaming'] },
+    { value: '1000', label: '1000 EUR',                   purposes: ['school', 'work', 'gaming'] },
+    { value: '1200', label: '1200 EUR',                   purposes: ['school', 'work', 'gaming'] },
+    { value: '1500', label: '1500 EUR — srednja klasa',   purposes: ['school', 'work', 'gaming'] },
+    { value: '2000', label: '2000 EUR',                   purposes: ['school', 'work', 'gaming'] },
+    { value: '2600', label: '2600 EUR',                   purposes: ['work', 'gaming'] },
+    { value: '3200', label: '3200 EUR — viša klasa',      purposes: ['work', 'gaming'] },
+    { value: '4000', label: '4000 EUR',                   purposes: ['work', 'gaming'] },
+    { value: '5500', label: '5500 EUR — entuzijast',      purposes: ['gaming'] },
+    { value: '7500', label: '7500 EUR',                   purposes: ['gaming'] },
+    { value: '9000', label: '9000 EUR — maksimum',        purposes: ['gaming'] },
 ]
 
 export const MAX_FANS_AIR = 6

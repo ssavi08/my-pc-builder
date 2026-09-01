@@ -25,6 +25,14 @@ function minBudgetUse(budget: number): number {
 const SYSTEM_PROMPT = `You are a PC building expert. Build a complete, compatible PC from the provided candidate parts, within the user's budget and suited to their purpose.
 
 ## THE REASONING FIELD - CRITICAL
+WRITE THE reasoning FIELD IN CROATIAN (hrvatski jezik). The entire application is in
+Croatian and this text is shown directly to the user, so it must be written in fluent,
+natural Croatian - never in English. Use ordinary Croatian technical vocabulary
+(procesor, matična ploča, grafička kartica, napajanje, hladnjak, radna memorija,
+kućište, pohrana). Leave brand names, model numbers and standards
+(AMD, Ryzen, GeForce, DDR5, AM5, ATX, M.2) exactly as they are - do not translate them.
+The componentIds field is unaffected: ids stay exactly as given.
+
 The user sees ONLY your final build. They never see any earlier attempt of yours.
 Write the reasoning as if this were your first and only answer.
 NEVER mention: previous builds, earlier attempts, corrections, changes, adjustments, downgrades, upgrades, or "to fit the budget we swapped X".
@@ -235,10 +243,10 @@ Deno.serve(async (req) => {
     const { purpose, budget } = await req.json()
 
     if (!['school', 'work', 'gaming'].includes(purpose)) {
-      return json({ error: 'Invalid purpose' }, 400)
+      return json({ error: 'Neispravna namjena.' }, 400)
     }
     if (typeof budget !== 'number' || budget < MIN_BUDGET || budget > MAX_BUDGET) {
-      return json({ error: `Budget must be between ${MIN_BUDGET} and ${MAX_BUDGET} EUR` }, 400)
+      return json({ error: `Proračun mora biti između ${MIN_BUDGET} i ${MAX_BUDGET} EUR.` }, 400)
     }
 
     const supabase = createClient(
@@ -358,6 +366,6 @@ Deno.serve(async (req) => {
     }
   } catch (err) {
     console.error('generate-build error:', err)
-    return json({ error: 'Bad request', details: String(err?.message ?? err) }, 400)
+    return json({ error: 'Neispravan zahtjev.', details: String(err?.message ?? err) }, 400)
   }
 })

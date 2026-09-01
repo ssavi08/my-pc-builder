@@ -21,12 +21,10 @@ export default function ComputerAssembly({ componentIds: idsProp, fanCount: fanP
 
     return (
         <group {...props}>
-            {/* CASE — root. Children placed at case anchors. */}
             <PartNode url={parts.case.modelUrl}>
                 {(caseNodes) => (
                     <>
                         <SidePanels caseNodes={caseNodes} />
-
                         {parts.psu?.modelUrl && (
                             <Anchored nodes={caseNodes} name="ANCHOR_psu">
                                 <PartNode url={parts.psu.modelUrl} componentId={parts.psu.id} />

@@ -33,7 +33,7 @@ export default function BuildCard({ build, onLoad, onDelete, deleting }) {
 
                     <Text size="xs" c="dimmed">
                         {formatDate(build.created_at)}
-                        {build.fan_count > 0 && ` · ${build.fan_count} fans`}
+                        {build.fan_count > 0 && ` · ${build.fan_count} ${build.fan_count === 1 ? 'ventilator' : 'ventilatora'}`}
                     </Text>
                 </Stack>
 
@@ -41,7 +41,7 @@ export default function BuildCard({ build, onLoad, onDelete, deleting }) {
                     variant="subtle"
                     color="red"
                     size="sm"
-                    aria-label="Delete build"
+                    aria-label="Obriši konfiguraciju"
                     loading={deleting}
                     onClick={(e) => {
                         e.stopPropagation()

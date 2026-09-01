@@ -30,7 +30,6 @@ export function useSaveBuild() {
 
             if (error) throw error
 
-            // keep history from growing without bound
             if (autoSaved) {
                 const { data: old } = await supabase
                     .from('saved_builds')

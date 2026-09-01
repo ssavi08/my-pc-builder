@@ -25,17 +25,17 @@ export default function App() {
 
             <BuildListModal
                 modalName="saved-builds"
-                title="Saved builds"
+                title="Spremljene konfiguracije"
                 autoSaved={false}
-                emptyText="No saved builds yet."
-                emptyHint="Generate a build, then use Save build in the sidebar."
+                emptyText="Još nemate spremljenih konfiguracija."
+                emptyHint="Generirajte konfiguraciju, zatim u bočnoj traci odaberite Spremi konfiguraciju."
             />
             <BuildListModal
                 modalName="history"
-                title="Recent builds"
+                title="Nedavne konfiguracije"
                 autoSaved={true}
-                emptyText="No recent builds."
-                emptyHint="Every build you generate is kept here automatically."
+                emptyText="Nema nedavnih konfiguracija."
+                emptyHint="Svaka generirana konfiguracija automatski se pohranjuje ovdje."
             />
         </>
     )

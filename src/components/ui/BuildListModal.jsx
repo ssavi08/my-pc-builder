@@ -29,7 +29,7 @@ export default function BuildListModal({ modalName, title, autoSaved, emptyText,
             {isLoading && <Center py="xl"><Loader size="sm" /></Center>}
 
             {isError && (
-                <Text size="sm" c="red">Could not load your builds.</Text>
+                <Text size="sm" c="red">Nije moguće učitati vaše konfiguracije.</Text>
             )}
 
             {builds?.length === 0 && (

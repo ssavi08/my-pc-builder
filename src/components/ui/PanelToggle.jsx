@@ -20,7 +20,7 @@ export default function PanelToggle() {
             }}
         >
             <Group gap="xs" wrap="nowrap">
-                <Text size="sm">Side panels</Text>
+                <Text size="sm">Bočne stranice</Text>
                 <Switch
                     checked={panelsVisible}
                     onChange={togglePanels}

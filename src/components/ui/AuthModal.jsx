@@ -3,19 +3,20 @@ import { Modal, TextInput, PasswordInput, Button, Stack, Text, Anchor, Alert } f
 import { useForm } from '@mantine/form'
 import { supabase } from '../../lib/supabaseClient'
 import { useUIStore } from '../../store/useUIStore'
+import { authErrorMessage } from '../../lib/authErrors'
 
 const AUTH_MODES = ['login', 'register', 'reset-request']
 
 const TITLES = {
-    login: 'Log in',
-    register: 'Create account',
-    'reset-request': 'Reset password',
+    login: 'Prijava',
+    register: 'Otvaranje računa',
+    'reset-request': 'Ponovno postavljanje lozinke',
 }
 
 const SUBMIT_LABELS = {
-    login: 'Log in',
-    register: 'Create account',
-    'reset-request': 'Send reset link',
+    login: 'Prijavi se',
+    register: 'Otvori račun',
+    'reset-request': 'Pošalji poveznicu',
 }
 
 export default function AuthModal(){
@@ -42,13 +43,13 @@ export default function AuthModal(){
     const form = useForm({
         initialValues: { email: '', password: '', confirmPassword: '' },
         validate: {
-            email: (value) => /^\S+@\S+\.\S+$/.test(value) ? null : 'Invalid email address',
+            email: (value) => /^\S+@\S+\.\S+$/.test(value) ? null : 'Neispravna e-mail adresa',
 
             password: (value) => {
                 if (mode === 'reset-request') {
                     return null
                 } else {
-                    return value.length < 6 ? 'Password must be at least 6 characters' : null
+                    return value.length < 6 ? 'Lozinka mora imati barem 6 znakova' : null
                 }
             },
 
@@ -56,7 +57,7 @@ export default function AuthModal(){
                 if (mode !== 'register') {
                     return null
                 } else {
-                    return value !== values.password ? 'Passwords do not match' : null
+                    return value !== values.password ? 'Lozinke se ne podudaraju' : null
                 }
             },
         },
@@ -73,7 +74,7 @@ export default function AuthModal(){
                 password: values.password,
             })
             if (error) {
-                setError(error.message)
+                setError(authErrorMessage(error))
             } else {
                 closeModal()
             }
@@ -85,7 +86,7 @@ export default function AuthModal(){
                 password: values.password,
             })
             if (error) {
-                setError(error.message)
+                setError(authErrorMessage(error))
             } else {
                 closeModal()
             }
@@ -96,9 +97,9 @@ export default function AuthModal(){
                 redirectTo: `${window.location.origin}/reset-password`,
             })
             if (error) {
-                setError(error.message)
+                setError(authErrorMessage(error))
             } else {
-                setSuccess('Reset link sent. Check your email.')
+                setSuccess('Poveznica je poslana. Provjerite svoju e-poštu.')
             }
         }
 
@@ -124,15 +125,15 @@ export default function AuthModal(){
                     {success && <Alert color='blue'>{success}</Alert>}
 
                     <TextInput
-                        label="Email"
-                        placeholder='your@email.com'
+                        label="E-mail adresa"
+                        placeholder='vasa@eposta.com'
                         required
                         {...form.getInputProps('email')}
                     />
 
                     {mode !== 'reset-request' && (
                         <PasswordInput
-                            label="Password"
+                            label="Lozinka"
                             required
                             {...form.getInputProps('password')}
                         />
@@ -140,7 +141,7 @@ export default function AuthModal(){
 
                     {mode === 'register' && (
                         <PasswordInput
-                            label="Confirm password"
+                            label="Potvrdite lozinku"
                             required
                             {...form.getInputProps('confirmPassword')}
                         />
@@ -153,21 +154,21 @@ export default function AuthModal(){
                     {mode === 'login' && (
                         <Stack gap={4}>
                             <Text size="sm" ta="center" c="dimmed">
-                                No account yet?{' '}
-                                <Anchor component='button' type='button' size="sm" onClick={() => openModal('register')}>Create one</Anchor>
+                                Nemate račun?{' '}
+                                <Anchor component='button' type='button' size="sm" onClick={() => openModal('register')}>Otvorite ga</Anchor>
                             </Text>
 
                             <Text size="sm" ta="center" c="dimmed">
-                                <Anchor component='button' type='button' size="sm" onClick={() => openModal('reset-request')}>Forgot password?</Anchor>
+                                <Anchor component='button' type='button' size="sm" onClick={() => openModal('reset-request')}>Zaboravljena lozinka?</Anchor>
                             </Text>
                         </Stack>
                     )}
 
                     {mode !== 'login' && (
                        <Text size="sm" ta="center" c="dimmed">
-                            Already have an account?{' '}
+                            Već imate račun?{' '}
                             <Anchor component="button" type="button" size="sm" onClick={() => openModal('login')}>
-                                Log in
+                                Prijavite se
                             </Anchor>
                         </Text> 
                     )}

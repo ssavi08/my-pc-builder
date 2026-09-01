@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useProfile } from '../../lib/useProfile'
+import { authErrorMessage } from '../../lib/authErrors'
 
 export default function AccountModal() {
     const activeModal = useUIStore((s) => s.activeModal)
@@ -22,8 +23,8 @@ export default function AccountModal() {
     const form = useForm({
         initialValues: { password: '', confirmPassword: '' },
         validate: {
-            password: (value) => value.length < 6 ? 'Password must be at least 6 characters' : null,
-            confirmPassword: (value, values) => value !== values.password ? 'Passwords do not match' : null,
+            password: (value) => value.length < 6 ? 'Lozinka mora imati barem 6 znakova' : null,
+            confirmPassword: (value, values) => value !== values.password ? 'Lozinke se ne podudaraju' : null,
         },
     })
 
@@ -41,9 +42,9 @@ export default function AccountModal() {
         const { error } = await supabase.auth.updateUser({ password: values.password })
 
         if (error) {
-            setError(error.message)
+            setError(authErrorMessage(error))
         } else {
-            setSuccess('Password updated.')
+            setSuccess('Lozinka je promijenjena.')
             form.reset()
             closeForm()
         }
@@ -61,21 +62,21 @@ export default function AccountModal() {
                 setError(null)
                 setSuccess(null)
             }}
-            title="Account"
+            title="Račun"
             centered
             size="sm"
         >
             <Stack gap="lg">
                 <Stack gap="xs">
                     <Group justify="space-between">
-                        <Text size="sm" c="dimmed">Email</Text>
+                        <Text size="sm" c="dimmed">E-mail adresa</Text>
                         <Text size="sm">{user?.email}</Text>
                     </Group>
 
                     <Group justify="space-between">
-                        <Text size="sm" c="dimmed">Credits</Text>
+                        <Text size="sm" c="dimmed">Krediti</Text>
                         {isLoading && <Loader size="xs" />}
-                        {isError && <Text size="sm" c="red">Failed to load</Text>}
+                        {isError && <Text size="sm" c="red">Učitavanje nije uspjelo</Text>}
                         {profile && <Badge variant="light">{profile.credits}</Badge>}
                     </Group>
                 </Stack>
@@ -84,7 +85,7 @@ export default function AccountModal() {
 
                 <Stack gap="xs">
                     <Anchor component="button" type="button" size="sm" fw={600} onClick={toggleForm} style={{ alignSelf: 'flex-start' }}>
-                        Update password
+                        Promjena lozinke
                     </Anchor>
 
                     {success && <Alert color="blue">{success}</Alert>}
@@ -95,22 +96,22 @@ export default function AccountModal() {
                                 {error && <Alert color="red">{error}</Alert>}
 
                                 <PasswordInput
-                                    label="New password"
+                                    label="Nova lozinka"
                                     required
                                     {...form.getInputProps('password')}
                                 />
                                 <PasswordInput
-                                    label="Confirm new password"
+                                    label="Potvrdite novu lozinku"
                                     required
                                     {...form.getInputProps('confirmPassword')}
                                 />
 
                                 <Group justify="flex-end" mt="xs">
                                     <Button variant="default" onClick={handleCancel}>
-                                        Cancel
+                                        Odustani
                                     </Button>
                                     <Button type="submit" loading={loading}>
-                                        Update password
+                                        Promijeni lozinku
                                     </Button>
                                 </Group>
                             </Stack>

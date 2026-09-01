@@ -94,7 +94,7 @@ export default function Sidebar() {
         if (budget > max) setBudget(max)
     }
 
-    // "Gaming 1200 €" — the same shape used for auto-saved history entries
+    // "Igranje 1200 €" — the same shape used for auto-saved history entries
     function defaultBuildName() {
         return `${PURPOSE_LABELS[purpose] ?? purpose} ${budget} €`
     }
@@ -149,10 +149,10 @@ export default function Sidebar() {
                 const body = await error.context?.json().catch(() => null)
 
                 let message
-                if (status === 402) message = 'You have no credits left.'
-                else if (status === 401) message = 'Your session expired. Please log in again.'
-                else if (status === 400) message = body?.error ?? 'Invalid request.'
-                else message = 'The AI made a mistake building your PC. Please try again — your credit was not spent.'
+                if (status === 402) message = 'Nemate više kredita.'
+                else if (status === 401) message = 'Vaša sesija je istekla. Molimo prijavite se ponovno.'
+                else if (status === 400) message = body?.error ?? 'Neispravan zahtjev.'
+                else message = 'Umjetna inteligencija pogriješila je pri sastavljanju računala. Pokušajte ponovno — vaš kredit nije potrošen.'
 
                 const err = new Error(message)
                 err.details = body?.details ?? null
@@ -199,15 +199,15 @@ export default function Sidebar() {
                 style={FILL}
                 styles={{ item: { overflow: 'hidden' } }}
             >
-                <Section value="generate" label="Generate build" open={openSection}>
+                <Section value="generate" label="Generiraj konfiguraciju" open={openSection}>
                     <Stack gap="md">
                         <Text size="xs" c="dimmed">
-                            Pick the purpose you will use this computer for and how much you want to
-                            spend. The AI will build you a compatible PC.
+                            Odaberite namjenu računala i iznos koji želite potrošiti.
+                            Umjetna inteligencija složit će vam kompatibilnu konfiguraciju.
                         </Text>
 
                         <Select
-                            label="Purpose"
+                            label="Namjena"
                             value={purpose}
                             onChange={handlePurposeChange}
                             allowDeselect={false}
@@ -215,7 +215,7 @@ export default function Sidebar() {
                         />
 
                         <Select
-                            label="Budget"
+                            label="Proračun"
                             value={String(budget)}
                             onChange={(v) => setBudget(Number(v))}
                             allowDeselect={false}
@@ -224,30 +224,23 @@ export default function Sidebar() {
                         />
 
                         {!user ? (
-                            <Button onClick={() => openModal('login')}>Log in to generate</Button>
+                            <Button onClick={() => openModal('login')}>Prijavite se za generiranje</Button>
                         ) : (
                             <Button onClick={() => generate.mutate()} loading={busy} disabled={busy}>
-                                Generate build
+                                Generiraj konfiguraciju
                             </Button>
                         )}
 
                         {generate.isError && (
-                            <Alert color="red" title="Generation failed">
+                            <Alert color="red" title="Generiranje nije uspjelo">
                                 <Text size="sm">{generate.error.message}</Text>
-                                {generate.error.details?.length > 0 && (
-                                    <Stack gap={4} mt="xs">
-                                        {generate.error.details.map((d, i) => (
-                                            <Text key={i} size="xs" c="dimmed">{d}</Text>
-                                        ))}
-                                    </Stack>
-                                )}
                             </Alert>
                         )}
                     </Stack>
                 </Section>
 
                 {componentIds && (
-                    <Section value="build" label="Build" open={openSection}>
+                    <Section value="build" label="Konfiguracija" open={openSection}>
                         <BuildList parts={parts} />
                     </Section>
                 )}
@@ -256,7 +249,7 @@ export default function Sidebar() {
             {componentIds && (
                 <Stack gap={4} mt="md">
                     <Group justify="space-between">
-                        <Text size="sm">Case fans</Text>
+                        <Text size="sm">Ventilatori kućišta</Text>
                         <Group gap="xs">
                             <ActionIcon
                                 variant="default"
@@ -272,7 +265,7 @@ export default function Sidebar() {
                         </Group>
                     </Group>
                     {fanCount === 0 && (
-                        <Text size="xs" c="dimmed">Add fans to improve airflow</Text>
+                        <Text size="xs" c="dimmed">Dodajte ventilatore za bolji protok zraka</Text>
                     )}
                 </Stack>
             )}
@@ -285,34 +278,34 @@ export default function Sidebar() {
                     style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
                 >
                     <Group justify="space-between">
-                        <Text fw={600}>Total</Text>
+                        <Text fw={600}>Ukupno</Text>
                         <Badge size="lg" variant="light" color={'blue'}>
                             {liveTotal?.toFixed(2)} EUR
                         </Badge>
                     </Group>
 
                     {saveBuild.isError && (
-                        <Text size="xs" c="red">Could not save. Please try again.</Text>
+                        <Text size="xs" c="red">Spremanje nije uspjelo. Pokušajte ponovno.</Text>
                     )}
 
                     {saveBuild.isSuccess && !naming && (
-                        <Text size="xs" c="green">Build saved.</Text>
+                        <Text size="xs" c="green">Konfiguracija je spremljena.</Text>
                     )}
 
                     {updateBuild.isSuccess && (
-                        <Text size="xs" c="green">Build updated.</Text>
+                        <Text size="xs" c="green">Konfiguracija je ažurirana.</Text>
                     )}
 
                     {!user ? (
                         <Button fullWidth variant="light" onClick={() => openModal('login')}>
-                            Log in to save
+                            Prijavite se za spremanje
                         </Button>
                     ) : naming ? (
                         <Stack gap="xs">
                             <TextInput
                                 value={buildName}
                                 onChange={(e) => setBuildName(e.currentTarget.value)}
-                                placeholder="Build name"
+                                placeholder="Naziv konfiguracije"
                                 maxLength={60}
                                 data-autofocus
                                 onKeyDown={(e) => {
@@ -321,13 +314,13 @@ export default function Sidebar() {
                                 }}
                             />
                             <Group grow gap="xs">
-                                <Button variant="default" onClick={cancelNaming}>Cancel</Button>
+                                <Button variant="default" onClick={cancelNaming}>Odustani</Button>
                                 <Button
                                     onClick={confirmSave}
                                     loading={saveBuild.isPending}
                                     disabled={!buildName.trim()}
                                 >
-                                    Save
+                                    Spremi
                                 </Button>
                             </Group>
                         </Stack>
@@ -339,15 +332,15 @@ export default function Sidebar() {
                                 onClick={handleUpdate}
                                 loading={updateBuild.isPending}
                             >
-                                Update build
+                                Ažuriraj konfiguraciju
                             </Button>
                             <Text size="xs" c="dimmed" ta="center" lineClamp={1}>
-                                Editing “{savedBuildName}”
+                                Uređujete „{savedBuildName}”
                             </Text>
                         </Stack>
                     ) : (
                         <Button fullWidth variant="light" onClick={startNaming}>
-                            Save build
+                            Spremi konfiguraciju
                         </Button>
                     )}
                 </Stack>
@@ -397,9 +390,9 @@ function BuildList({ parts }) {
         <Stack gap="xs">
             {hasSwaps && (
                 <Group justify="space-between" wrap="nowrap">
-                    <Text size="xs" c="dimmed">Build modified</Text>
+                    <Text size="xs" c="dimmed">Konfiguracija je izmijenjena</Text>
                     <Button size="compact-xs" variant="subtle" onClick={resetToOriginal}>
-                        Reset to AI build
+                        Vrati na AI konfiguraciju
                     </Button>
                 </Group>
             )}
@@ -439,7 +432,7 @@ function BuildList({ parts }) {
                                 </Text>
                                 <Text size="sm" c="dimmed">ⓘ</Text>
                                 {originalComponentIds && !originalComponentIds.includes(p.id) && (
-                                    <Badge size="xs" variant="light" color="orange">swapped</Badge>
+                                    <Badge size="xs" variant="light" color="orange">zamijenjeno</Badge>
                                 )}
                             </Group>
                         </UnstyledButton>
@@ -457,7 +450,7 @@ function BuildList({ parts }) {
                     <Accordion variant="filled" chevronPosition="left">
                         <Accordion.Item value="reasoning">
                             <Accordion.Control px={0}>
-                                <Text size="sm">Why these parts?</Text>
+                                <Text size="sm">Zašto ove komponente?</Text>
                             </Accordion.Control>
                             <Accordion.Panel>
                                 <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>

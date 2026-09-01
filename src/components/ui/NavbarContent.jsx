@@ -24,33 +24,33 @@ export default function NavbarContent() {
                 {user ? (
                     <Menu shadow="md" width={200} position="bottom-end">
                         <Menu.Target>
-                            <Button variant="subtle" color="gray">Profile</Button>
+                            <Button variant="subtle" color="gray">Profil</Button>
                         </Menu.Target>
 
                         <Menu.Dropdown>
                             <Menu.Item onClick={() => openModal('history')}>
-                                Recent builds
+                                Nedavne konfiguracije
                             </Menu.Item>
                             <Menu.Item onClick={() => openModal('saved-builds')}>
-                                Saved builds
+                                Spremljene konfiguracije
                             </Menu.Item>
                             <Menu.Item onClick={() => openModal('account')}>
-                                Account
+                                Račun
                             </Menu.Item>
                             <Menu.Divider />
                             <Menu.Item color="red" onClick={() => supabase.auth.signOut()}>
-                                Sign out
+                                Odjava
                             </Menu.Item>
                         </Menu.Dropdown>
                     </Menu>
                 ) : (
                     <Button variant="subtle" color="gray" onClick={() => openModal('login')}>
-                        Login
+                        Prijava
                     </Button>
                 )}
 
                 <Button component={Link} to="/about" variant="subtle" color="gray">
-                    About
+                    O aplikaciji
                 </Button>
 
                 <Switch

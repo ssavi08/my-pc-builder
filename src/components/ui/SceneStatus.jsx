@@ -9,7 +9,7 @@ export default function SceneStatus() {
     const { componentIds } = useSceneBuild()
 
     // Same query key as ComputerAssembly — react-query serves both from one fetch.
-    const { isLoading, isError, error, isFetching, refetch } = useBuildParts(componentIds)
+    const { isLoading, isError, isFetching, refetch } = useBuildParts(componentIds)
 
     if (!isLoading && !isError) return null
 
@@ -32,13 +32,13 @@ export default function SceneStatus() {
             {isLoading ? (
                 <Group gap="sm" wrap="nowrap">
                     <Loader size="sm" />
-                    <Text size="sm" c="dimmed">Loading build…</Text>
+                    <Text size="sm" c="dimmed">Učitavanje konfiguracije…</Text>
                 </Group>
             ) : (
                 <Stack gap="xs" align="center">
-                    <Text size="sm" fw={500}>Could not load this build</Text>
+                    <Text size="sm" fw={500}>Nije moguće učitati ovu konfiguraciju</Text>
                     <Text size="xs" c="dimmed" ta="center" maw={260}>
-                        {error?.message ?? 'Something went wrong while fetching the components.'}
+                        Došlo je do pogreške pri dohvaćanju komponenti.
                     </Text>
                     <Button
                         size="xs"
@@ -47,7 +47,7 @@ export default function SceneStatus() {
                         loading={isFetching}
                         onClick={() => refetch()}
                     >
-                        Try again
+                        Pokušaj ponovno
                     </Button>
                 </Stack>
             )}

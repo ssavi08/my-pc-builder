@@ -5,6 +5,7 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { supabase } from '../lib/supabaseClient'
+import { authErrorMessage } from '../lib/authErrors'
 
 export default function ResetPasswordPage() {
     const navigate = useNavigate()
@@ -32,7 +33,7 @@ export default function ResetPasswordPage() {
                 setTimeout(() => {
                     supabase.auth.getSession().then(({ data }) => {
                         if (data.session) setReady(true)
-                        else setInvalid('This reset link is invalid or has expired.')
+                        else setInvalid('Ova poveznica je neispravna ili je istekla.')
                     })
                 }, 1500)
             }
@@ -45,9 +46,9 @@ export default function ResetPasswordPage() {
         initialValues: { password: '', confirmPassword: '' },
         validate: {
             password: (value) =>
-                value.length < 6 ? 'Password must be at least 6 characters' : null,
+                value.length < 6 ? 'Lozinka mora imati barem 6 znakova' : null,
             confirmPassword: (value, values) =>
-                value !== values.password ? 'Passwords do not match' : null,
+                value !== values.password ? 'Lozinke se ne podudaraju' : null,
         },
     })
 
@@ -58,7 +59,7 @@ export default function ResetPasswordPage() {
         const { error } = await supabase.auth.updateUser({ password: values.password })
 
         if (error) {
-            setError(error.message)
+            setError(authErrorMessage(error))
         } else {
             setSuccess(true)
             setTimeout(() => navigate('/'), 2000)
@@ -71,7 +72,7 @@ export default function ResetPasswordPage() {
         <Container size="xs" py="xl">
             <Paper withBorder shadow="sm" p="xl" radius="md">
                 <Stack gap="md">
-                    <Title order={2}>Reset password</Title>
+                    <Title order={2}>Postavljanje nove lozinke</Title>
 
                     {!ready && !invalid && (
                         <Center py="lg">
@@ -83,21 +84,21 @@ export default function ResetPasswordPage() {
                         <>
                             <Alert color="red">{invalid}</Alert>
                             <Button variant="light" onClick={() => navigate('/')}>
-                                Back to MyPCBuilder
+                                Natrag na MyPCBuilder
                             </Button>
                         </>
                     )}
 
                     {success && (
                         <Alert color="green">
-                            Password updated. Taking you back to the app...
+                            Lozinka je promijenjena. Vraćamo vas u aplikaciju...
                         </Alert>
                     )}
 
                     {ready && !success && (
                         <>
                             <Text size="sm" c="dimmed">
-                                Choose a new password for your account.
+                                Odaberite novu lozinku za svoj račun.
                             </Text>
 
                             <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -105,18 +106,18 @@ export default function ResetPasswordPage() {
                                     {error && <Alert color="red">{error}</Alert>}
 
                                     <PasswordInput
-                                        label="New password"
+                                        label="Nova lozinka"
                                         required
                                         {...form.getInputProps('password')}
                                     />
                                     <PasswordInput
-                                        label="Confirm new password"
+                                        label="Potvrdite novu lozinku"
                                         required
                                         {...form.getInputProps('confirmPassword')}
                                     />
 
                                     <Button type="submit" loading={loading} mt="xs" fullWidth>
-                                        Update password
+                                        Postavi lozinku
                                     </Button>
                                 </Stack>
                             </form>

@@ -10,6 +10,7 @@ import { useSwapOptions } from '../../lib/useSwapOptions'
 import { checkSwap } from '../../lib/compatibility'
 import { useUIStore } from '../../store/useUIStore'
 import { useBuildStore } from '../../store/useBuildStore'
+import { SLOT_LABELS } from '../../lib/constants'
 
 const SWAPPABLE = ['cpu', 'gpu', 'ram', 'storage']
 
@@ -17,41 +18,41 @@ const SWAPPABLE = ['cpu', 'gpu', 'ram', 'storage']
 // Key order here is the order the spec table renders.
 const SPEC_COLUMNS = {
     socket: ['Socket'],
-    sockets: ['Supported sockets'],
-    ram_type: ['Memory type'],
-    form_factor: ['Form factor'],
-    cooler_type: ['Cooler type'],
-    ram_slots: ['RAM slots'],
+    sockets: ['Podržani socketi'],
+    ram_type: ['Tip memorije'],
+    form_factor: ['Format'],
+    cooler_type: ['Tip hladnjaka'],
+    ram_slots: ['Utori za memoriju'],
     tdp: ['TDP', ' W'],
-    wattage: ['Wattage', ' W'],
-    gpu_length_mm: ['Length', ' mm'],
-    cooler_height_mm: ['Height', ' mm'],
-    radiator_mm: ['Radiator', ' mm'],
-    max_gpu_length_mm: ['Max GPU length', ' mm'],
-    max_cooler_height_mm: ['Max cooler height', ' mm'],
-    max_radiator_mm: ['Max radiator', ' mm'],
+    wattage: ['Snaga', ' W'],
+    gpu_length_mm: ['Duljina', ' mm'],
+    cooler_height_mm: ['Visina', ' mm'],
+    radiator_mm: ['Radijator', ' mm'],
+    max_gpu_length_mm: ['Najveća duljina grafičke', ' mm'],
+    max_cooler_height_mm: ['Najveća visina hladnjaka', ' mm'],
+    max_radiator_mm: ['Najveći radijator', ' mm'],
 }
 
 // specs jsonb keys whose generic Title Case would be wrong or unit-less.
 // Anything not listed here falls through to formatKey().
 const SPEC_KEYS = {
     argb: ['ARGB'],
-    boost_clock: ['Boost clock'],
-    cache_mb: ['Cache', ' MB'],
-    capacity_gb: ['Capacity', ' GB'],
-    chip_brand: ['Chip'],
-    cl: ['CAS latency'],
-    fan_count: ['Fans'],
-    fan_size_mm: ['Fan size', ' mm'],
+    boost_clock: ['Boost takt'],
+    cache_mb: ['Predmemorija', ' MB'],
+    capacity_gb: ['Kapacitet', ' GB'],
+    chip_brand: ['Čip'],
+    cl: ['CAS latencija'],
+    fan_count: ['Ventilatori'],
+    fan_size_mm: ['Veličina ventilatora', ' mm'],
     pwm: ['PWM'],
-    rating: ['Efficiency'],
-    read_mbps: ['Read speed', ' MB/s'],
+    rating: ['Učinkovitost'],
+    read_mbps: ['Brzina čitanja', ' MB/s'],
     rpm: ['RPM'],
-    size_mm: ['Size', ' mm'],
-    speed_mhz: ['Speed', ' MHz'],
+    size_mm: ['Veličina', ' mm'],
+    speed_mhz: ['Radni takt', ' MHz'],
     vram_gb: ['VRAM', ' GB'],
     wifi: ['Wi-Fi'],
-    write_mbps: ['Write speed', ' MB/s'],
+    write_mbps: ['Brzina pisanja', ' MB/s'],
 }
 
 function formatKey(key) {
@@ -61,13 +62,13 @@ function formatKey(key) {
 }
 
 function formatValue(value) {
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+    if (typeof value === 'boolean') return value ? 'Da' : 'Ne'
     if (Array.isArray(value)) return value.join(', ')
     return String(value)
 }
 
 function shortName(name) {
-    return name?.split(',')[0].trim() ?? 'Component'
+    return name?.split(',')[0].trim() ?? 'Komponenta'
 }
 
 export default function ComponentModal() {
@@ -124,13 +125,13 @@ export default function ComponentModal() {
             size="md"
         >
             {isLoading && <Loader size="sm" />}
-            {isError && <Alert color="red">Could not load this component.</Alert>}
+            {isError && <Alert color="red">Nije moguće učitati ovu komponentu.</Alert>}
 
             {component && (
                 <Stack gap="lg">
                     <Group justify="space-between" wrap="nowrap">
                         <Group gap="xs">
-                            <Badge variant="light">{component.slot}</Badge>
+                            <Badge variant="light">{SLOT_LABELS[component.slot] ?? component.slot}</Badge>
                             {component.brand && (
                                 <Badge variant="outline" color="gray">{component.brand}</Badge>
                             )}
@@ -143,7 +144,7 @@ export default function ComponentModal() {
                     <Divider />
 
                     <Stack gap="xs">
-                        <Text fw={600} size="sm">Specifications</Text>
+                        <Text fw={600} size="sm">Specifikacije</Text>
 
                         <Table withRowBorders={false} verticalSpacing="xs">
                             <Table.Tbody>
@@ -167,7 +168,7 @@ export default function ComponentModal() {
 
                             <Stack gap="sm">
                                 <Button variant="light" onClick={toggleOptions} fullWidth>
-                                    {showOptions ? 'Hide alternatives' : 'More options'}
+                                    {showOptions ? 'Sakrij alternative' : 'Više opcija'}
                                 </Button>
 
                                 <Collapse expanded={showOptions}>
@@ -176,7 +177,7 @@ export default function ComponentModal() {
 
                                         {!optionsLoading && options?.length === 0 && (
                                             <Text size="sm" c="dimmed">
-                                                No compatible alternatives in the catalogue.
+                                                U katalogu nema kompatibilnih alternativa.
                                             </Text>
                                         )}
 
@@ -226,7 +227,7 @@ export default function ComponentModal() {
                                                         disabled={!!problem}
                                                         onClick={() => handleSwap(opt.id)}
                                                     >
-                                                        Swap
+                                                        Zamijeni
                                                     </Button>
                                                 </Group>
                                             )
@@ -241,16 +242,16 @@ export default function ComponentModal() {
 
                     <Stack gap="sm">
                         <Group justify="space-between" align="center" wrap="nowrap">
-                            <Text fw={600} size="sm">Current offers</Text>
+                            <Text fw={600} size="sm">Trenutne ponude</Text>
                             <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
-                                Live retailer prices
+                                Cijene iz trgovina uživo
                             </Text>
                         </Group>
 
                         {offersLoading && <Loader size="xs" />}
 
                         {!offersLoading && offers?.length === 0 && (
-                            <Text size="sm" c="dimmed">No Croatian listings found.</Text>
+                            <Text size="sm" c="dimmed">Nema pronađenih ponuda u hrvatskim trgovinama.</Text>
                         )}
 
                         {offers?.map((offer) => (
