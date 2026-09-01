@@ -25,6 +25,7 @@ function minBudgetUse(budget: number): number {
 const SYSTEM_PROMPT = `You are a PC building expert. Build a complete, compatible PC from the provided candidate parts, within the user's budget and suited to their purpose.
 
 ## THE REASONING FIELD - CRITICAL
+## THE REASONING FIELD - CRITICAL
 WRITE THE reasoning FIELD IN CROATIAN (hrvatski jezik). The entire application is in
 Croatian and this text is shown directly to the user, so it must be written in fluent,
 natural Croatian - never in English. Use ordinary Croatian technical vocabulary
@@ -243,10 +244,10 @@ Deno.serve(async (req) => {
     const { purpose, budget } = await req.json()
 
     if (!['school', 'work', 'gaming'].includes(purpose)) {
-      return json({ error: 'Neispravna namjena.' }, 400)
+      return json({ error: 'Invalid purpose' }, 400)
     }
     if (typeof budget !== 'number' || budget < MIN_BUDGET || budget > MAX_BUDGET) {
-      return json({ error: `Proračun mora biti između ${MIN_BUDGET} i ${MAX_BUDGET} EUR.` }, 400)
+      return json({ error: `Budget must be between ${MIN_BUDGET} and ${MAX_BUDGET} EUR` }, 400)
     }
 
     const supabase = createClient(
@@ -276,6 +277,7 @@ Deno.serve(async (req) => {
       if (!candidates?.length) throw new Error('No candidates found for this budget')
 
       const baseRequest = `Purpose: ${purpose}\nBudget: ${budget} EUR\n\nAvailable parts (id|price|specs):\n\n${formatCandidates(candidates)}`
+      console.log(baseRequest) //DEBUG
 
       let build: any = null
       let result: any = null
@@ -358,6 +360,7 @@ Deno.serve(async (req) => {
         reasoning: build.reasoning,
         fanCount: 0,
         totalPrice: result.total,
+        _debugPrompt: baseRequest,        // DEBUG — ukloniti
       })
     } catch (err) {
       await supabase.rpc('refund_credit', { p_user_id: user.id })
@@ -366,6 +369,6 @@ Deno.serve(async (req) => {
     }
   } catch (err) {
     console.error('generate-build error:', err)
-    return json({ error: 'Neispravan zahtjev.', details: String(err?.message ?? err) }, 400)
+    return json({ error: 'Bad request', details: String(err?.message ?? err) }, 400)
   }
 })
